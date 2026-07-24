@@ -5,7 +5,8 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
 
 import enHome from "@/lib/i18n/locales/en/home.json";
-
+import enFood from "@/lib/i18n/locales/en/food.json";
+import deFood from "@/lib/i18n/locales/de/food.json";
 import deHome from "@/lib/i18n/locales/de/home.json";
 
 i18n
@@ -16,9 +17,11 @@ i18n
     defaultNS: "home",
     resources: {
       en: {
+        food: enFood,
         home: enHome,
       },
       de: {
+        food: deFood,
         home: deHome,
       },
     },

@@ -1,0 +1,51 @@
+{
+  "gyros": {
+    "title": "GYROS",
+    "description": "Pork or chicken, freshly roasted on a spit",
+    "imageAlt": "Gyros wrap"
+  },
+  "souvlaki": {
+    "title": "SOUVLAKI",
+    "description": "Charcoal grilled skewers, just like at the taverna",
+    "imageAlt": "Souvlaki skewers"
+  },
+  "pites": {
+    "title": "PITAS",
+    "description": "Freshly baked pita filled with love",
+    "imageAlt": "Pita wrap"
+  },
+  "merides": {
+    "title": "PLATTERS",
+    "description": "A hearty plate for the hungry",
+    "imageAlt": "Plated portion"
+  },
+  "salates": {
+    "title": "SALADS",
+    "description": "Fresh sides for every meal",
+    "imageAlt": "Greek salad"
+  },
+  "patates": {
+    "title": "FRIES",
+    "description": "Classic, with cheese or your favorite dip",
+    "imageAlt": "Fries"
+  },
+  "epic-gyros": {
+    "eyebrow": "TASTE THE",
+    "name": "EPIC GYROS"
+  },
+  "club-souvlaki": {
+    "eyebrow": "GIANT",
+    "name": "CLUB SOUVLAKI"
+  },
+  "chicken-pita": {
+    "eyebrow": "TASTE THE",
+    "name": "CHICKEN PITA"
+  },
+  "gentle-giant": {
+    "eyebrow": "EAT YOUR",
+    "name": "GENTLE GIANT"
+  },
+  "orderButton": {
+    "label": "Order now"
+  }
+}

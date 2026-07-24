@@ -1,0 +1,51 @@
+{
+  "gyros": {
+    "title": "GYROS",
+    "description": "Schweinefleisch oder Hähnchen, frisch am Spieß gegrillt",
+    "imageAlt": "Gyros-Pita"
+  },
+  "souvlaki": {
+    "title": "SOUVLAKI",
+    "description": "Frisch gegrillte Fleischspieße vom Holzkohlegrill – wie in einer griechischen Taverne",
+    "imageAlt": "Souvlaki-Spieße"
+  },
+  "pites": {
+    "title": "PITAS",
+    "description": "Frisch gebackene Pita, gefüllt mit deinen Lieblingszutaten",
+    "imageAlt": "Gefüllte Pita"
+  },
+  "merides": {
+    "title": "TELLERGERICHTE",
+    "description": "Großzügige Portionen mit authentischem griechischem Geschmack",
+    "imageAlt": "Griechischer Teller"
+  },
+  "salates": {
+    "title": "SALATE",
+    "description": "Frische Salate als perfekte Beilage zu jedem Gericht",
+    "imageAlt": "Griechischer Salat"
+  },
+  "patates": {
+    "title": "POMMES",
+    "description": "Knusprige Pommes – klassisch, mit Käse oder deinem Lieblingsdip",
+    "imageAlt": "Pommes frites"
+  },
+  "epic-gyros": {
+    "eyebrow": "PROBIER DAS",
+    "name": "EPIC GYROS"
+  },
+  "club-souvlaki": {
+    "eyebrow": "DER RIESE",
+    "name": "CLUB SOUVLAKI"
+  },
+  "chicken-pita": {
+    "eyebrow": "PROBIER DAS",
+    "name": "CHICKEN PITA"
+  },
+  "gentle-giant": {
+    "eyebrow": "UNSER",
+    "name": "GENTLE GIANT"
+  },
+  "orderButton": {
+    "label": "Jetzt bestellen"
+  }
+}
