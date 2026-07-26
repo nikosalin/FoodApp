@@ -105,6 +105,25 @@ export async function declineOrder(
   return result.order;
 }
 
+export async function refundOrder(restaurantId: string, orderId: string) {
+  const result = await apiRequest<{ order: RestaurantOrder }>(
+    `${orderBase(restaurantId, orderId)}/refund`,
+    { method: "POST" },
+  );
+  return result.order;
+}
+
+export async function markCashCollected(
+  restaurantId: string,
+  orderId: string,
+) {
+  const result = await apiRequest<{ order: RestaurantOrder }>(
+    `${orderBase(restaurantId, orderId)}/payment-collected`,
+    { method: "POST" },
+  );
+  return result.order;
+}
+
 export async function updateOrderStatus(
   restaurantId: string,
   orderId: string,

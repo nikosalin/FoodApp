@@ -2,10 +2,12 @@
 
 import {
   ArrowLeft,
+  Banknote,
   CheckCircle2,
   ChefHat,
   Clock3,
   Euro,
+  Minus,
   Package,
   Pencil,
   Play,
@@ -27,6 +29,8 @@ import {
   declineOrder,
   editAdminOrder,
   getRestaurantOrders,
+  markCashCollected,
+  refundOrder,
   subscribeToRestaurantOrders,
   updateOrderStatus,
 } from "@/features/orders/lib/order-api";
@@ -48,6 +52,7 @@ import {
 } from "./AdminUi";
 import { RestaurantQrCard } from "./RestaurantQrCard";
 import { getPublicMenu } from "@/features/menu/data/menu";
+import { RestaurantAvailabilityCard } from "@/features/restaurants/components/RestaurantAvailabilityCard";
 
 const closedStatuses: OrderStatus[] = ["completed", "cancelled", "rejected"];
 
@@ -251,6 +256,8 @@ export function RestaurantOrderOverview({
         />
       </div>
 
+      <RestaurantAvailabilityCard restaurantId={restaurant.id} />
+
       <RestaurantQrCard restaurant={restaurant} />
 
       {error && (
@@ -338,6 +345,19 @@ export function RestaurantOrderOverview({
                     setBusyOrderId(undefined);
                   }
                 }}
+                onRefund={() => {
+                  if (!window.confirm(`Refund order #${order.orderNumber}?`)) {
+                    return;
+                  }
+                  void runOrderMutation(order.id, () =>
+                    refundOrder(restaurantId, order.id),
+                  );
+                }}
+                onCashCollected={() =>
+                  void runOrderMutation(order.id, () =>
+                    markCashCollected(restaurantId, order.id),
+                  )
+                }
               />
             ))}
         </div>
@@ -450,6 +470,8 @@ function OrderCard({
   onStatus,
   onEdit,
   onDelete,
+  onRefund,
+  onCashCollected,
 }: {
   order: RestaurantOrder;
   busy: boolean;
@@ -460,6 +482,8 @@ function OrderCard({
   ) => void;
   onEdit: () => void;
   onDelete: () => void;
+  onRefund: () => void;
+  onCashCollected: () => void;
 }) {
   const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
   const statusTone = closedStatuses.includes(order.status)
@@ -496,6 +520,26 @@ function OrderCard({
               {order.orderType}
               {order.tableNumber ? ` · Table ${order.tableNumber}` : ""}
             </span>
+            <span>
+              {order.paymentMethod === "cash_on_site"
+                ? order.orderType === "takeaway"
+                  ? "Cash on pickup"
+                  : "Cash on site"
+                : order.paymentMethod === "external_card"
+                  ? "External terminal"
+                  : order.paymentMethod === "cash_on_delivery"
+                    ? "Cash on delivery"
+                  : order.paymentMethod === "online"
+                    ? "Online payment"
+                    : "Payment not recorded"}
+              {order.paymentStatus ? ` · ${order.paymentStatus}` : ""}
+            </span>
+            {order.deliveryAddress && (
+              <span>
+                {order.deliveryAddress.street}, {order.deliveryAddress.postalCode}{" "}
+                {order.deliveryAddress.city}
+              </span>
+            )}
           </div>
           <ul className="mt-4 space-y-2 rounded-xl bg-stone-50 p-3 text-sm">
             {order.items.map((item) => (
@@ -531,6 +575,8 @@ function OrderCard({
             onStatus={onStatus}
             onEdit={onEdit}
             onDelete={onDelete}
+            onRefund={onRefund}
+            onCashCollected={onCashCollected}
           />
         </div>
       </div>
@@ -546,6 +592,8 @@ function OrderActions({
   onStatus,
   onEdit,
   onDelete,
+  onRefund,
+  onCashCollected,
 }: {
   order: RestaurantOrder;
   busy: boolean;
@@ -556,6 +604,8 @@ function OrderActions({
   ) => void;
   onEdit: () => void;
   onDelete: () => void;
+  onRefund: () => void;
+  onCashCollected: () => void;
 }) {
   const managementActions = (
     <div className="mt-2 flex gap-2 lg:flex-col">
@@ -579,6 +629,30 @@ function OrderActions({
         <Trash2 className="size-4" />
         Delete
       </button>
+      {order.paymentStatus === "captured" && (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={onRefund}
+          className={`${secondaryButtonClassName} text-amber-800`}
+        >
+          <ReceiptText className="size-4" />
+          Refund payment
+        </button>
+      )}
+      {order.paymentMethod === "cash_on_delivery" &&
+        order.paymentStatus !== "captured" &&
+        order.paymentStatus !== "refunded" && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onCashCollected}
+            className={`${secondaryButtonClassName} text-emerald-800`}
+          >
+            <Banknote className="size-4" />
+            Mark cash collected
+          </button>
+        )}
     </div>
   );
 
@@ -741,6 +815,19 @@ function OrderEditorModal({
   const [orderType, setOrderType] = useState<
     "table" | "takeaway" | "delivery"
   >(order?.orderType ?? "table");
+  const [paymentMethod, setPaymentMethod] = useState<
+    "online" | "cash_on_site" | "cash_on_delivery" | "external_card"
+  >(order?.paymentMethod ?? "cash_on_site");
+  const [cashOnDeliveryEnabled, setCashOnDeliveryEnabled] = useState(false);
+  const [deliveryStreet, setDeliveryStreet] = useState(
+    order?.deliveryAddress?.street ?? "",
+  );
+  const [deliveryPostalCode, setDeliveryPostalCode] = useState(
+    order?.deliveryAddress?.postalCode ?? "",
+  );
+  const [deliveryCity, setDeliveryCity] = useState(
+    order?.deliveryAddress?.city ?? "",
+  );
   const [tableNumber, setTableNumber] = useState(order?.tableNumber ?? "");
   const [items, setItems] = useState(() => {
     if (order?.items.length) {
@@ -758,17 +845,7 @@ function OrderEditorModal({
           : item;
       });
     }
-    const first = menu[0];
-    return first
-      ? [
-          {
-            menuItemId: first.id,
-            name: first.name,
-            quantity: 1,
-            unitPrice: first.price,
-          },
-        ]
-      : [];
+    return [];
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -776,6 +853,22 @@ function OrderEditorModal({
     (sum, item) => sum + item.quantity * item.unitPrice,
     0,
   );
+
+  useEffect(() => {
+    fetch(`/api/restaurants/${encodeURIComponent(restaurant.id)}/availability`, {
+      cache: "no-store",
+    })
+      .then((response) => response.json())
+      .then(
+        (body: {
+          availability?: { cashOnDeliveryEnabled?: boolean };
+        }) =>
+          setCashOnDeliveryEnabled(
+            body.availability?.cashOnDeliveryEnabled === true,
+          ),
+      )
+      .catch(() => undefined);
+  }, [restaurant.id]);
 
   return (
     <AdminModal title={order ? "Edit order" : "Create order"} onClose={onClose}>
@@ -791,7 +884,17 @@ function OrderEditorModal({
               customerEmail: customerEmail || undefined,
               customerPhone: customerPhone || undefined,
               preferredChannel,
+              paymentMethod,
               orderType,
+              deliveryAddress:
+                orderType === "delivery"
+                  ? {
+                      street: deliveryStreet,
+                      postalCode: deliveryPostalCode,
+                      city: deliveryCity,
+                      countryCode: "DE",
+                    }
+                  : undefined,
               tableNumber: tableNumber || undefined,
               items,
             });
@@ -863,15 +966,57 @@ function OrderEditorModal({
             <select
               className={fieldClassName}
               value={orderType}
-              onChange={(event) =>
-                setOrderType(
-                  event.target.value as "table" | "takeaway" | "delivery",
-                )
-              }
+              onChange={(event) => {
+                const next = event.target.value as
+                  | "table"
+                  | "takeaway"
+                  | "delivery";
+                setOrderType(next);
+                if (next === "delivery" && paymentMethod === "cash_on_site") {
+                  setPaymentMethod("online");
+                }
+                if (
+                  next !== "delivery" &&
+                  paymentMethod === "cash_on_delivery"
+                ) {
+                  setPaymentMethod("cash_on_site");
+                }
+              }}
             >
               <option value="table">Table</option>
               <option value="takeaway">Takeaway</option>
               <option value="delivery">Delivery</option>
+            </select>
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-sm font-semibold">
+              Payment method
+            </span>
+            <select
+              className={fieldClassName}
+              value={paymentMethod}
+              onChange={(event) =>
+                setPaymentMethod(
+                  event.target.value as
+                    | "online"
+                    | "cash_on_site"
+                    | "cash_on_delivery"
+                    | "external_card",
+                )
+              }
+            >
+              <option value="online">Online payment</option>
+              {orderType !== "delivery" && (
+                <option value="cash_on_site">
+                  {orderType === "takeaway"
+                    ? "Cash when picking up"
+                    : "Cash at the restaurant"}
+                </option>
+              )}
+              {orderType === "delivery" && cashOnDeliveryEnabled && (
+                <option value="cash_on_delivery">Cash on delivery</option>
+              )}
+              <option value="external_card">Paid on external terminal</option>
             </select>
           </label>
           {orderType === "table" && (
@@ -886,118 +1031,220 @@ function OrderEditorModal({
               />
             </label>
           )}
+          {orderType === "delivery" && (
+            <>
+              <label className="block sm:col-span-2">
+                <span className="mb-1.5 block text-sm font-semibold">
+                  Street and house number
+                </span>
+                <input
+                  className={fieldClassName}
+                  value={deliveryStreet}
+                  onChange={(event) => setDeliveryStreet(event.target.value)}
+                  minLength={3}
+                  maxLength={120}
+                  required
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-semibold">
+                  German postal code
+                </span>
+                <input
+                  className={fieldClassName}
+                  value={deliveryPostalCode}
+                  onChange={(event) =>
+                    setDeliveryPostalCode(event.target.value)
+                  }
+                  pattern="[0-9]{5}"
+                  maxLength={5}
+                  required
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-semibold">City</span>
+                <input
+                  className={fieldClassName}
+                  value={deliveryCity}
+                  onChange={(event) => setDeliveryCity(event.target.value)}
+                  minLength={2}
+                  maxLength={80}
+                  required
+                />
+              </label>
+            </>
+          )}
+        </div>
+
+        <div>
+          <div className="mb-3">
+            <h3 className="font-bold">Select from the menu</h3>
+            <p className="mt-1 text-xs text-stone-500">
+              Click an item to add it. Click it again to increase the quantity.
+            </p>
+          </div>
+          {menu.length === 0 ? (
+            <p className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+              This restaurant has no published menu items yet.
+            </p>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {menu.map((menuItem) => {
+                const selected = items.find(
+                  (item) => item.menuItemId === menuItem.id,
+                );
+                return (
+                  <button
+                    key={menuItem.id}
+                    type="button"
+                    aria-pressed={Boolean(selected)}
+                    onClick={() =>
+                      setItems((current) => {
+                        const existing = current.find(
+                          (item) => item.menuItemId === menuItem.id,
+                        );
+                        return existing
+                          ? current.map((item) =>
+                              item.menuItemId === menuItem.id
+                                ? {
+                                    ...item,
+                                    quantity: Math.min(99, item.quantity + 1),
+                                  }
+                                : item,
+                            )
+                          : [
+                              ...current,
+                              {
+                                menuItemId: menuItem.id,
+                                name: menuItem.name,
+                                quantity: 1,
+                                unitPrice: menuItem.price,
+                              },
+                            ];
+                      })
+                    }
+                    className={`relative min-h-24 rounded-xl border p-3 text-left transition ${
+                      selected
+                        ? "border-amber-600 bg-amber-50 ring-2 ring-amber-600/20"
+                        : "border-stone-200 bg-white hover:border-amber-400 hover:bg-amber-50/40"
+                    }`}
+                  >
+                    {selected && (
+                      <span className="absolute right-2 top-2 grid min-w-6 place-items-center rounded-full bg-amber-700 px-1.5 py-0.5 text-xs font-black text-white">
+                        {selected.quantity}
+                      </span>
+                    )}
+                    <span className="block pr-7 text-sm font-bold leading-tight">
+                      {menuItem.name}
+                    </span>
+                    <span className="mt-1 block text-[11px] text-stone-500">
+                      {menuItem.category}
+                    </span>
+                    <span className="mt-2 block text-sm font-black text-amber-700">
+                      {formatAdminCurrency(menuItem.price)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div>
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="font-bold">Order items</h3>
-            <button
-              type="button"
-              className={secondaryButtonClassName}
-              disabled={menu.length === 0}
-              onClick={() =>
-                setItems((current) => {
-                  const first = menu[0];
-                  return first
-                    ? [
-                        ...current,
-                        {
-                          menuItemId: first.id,
-                          name: first.name,
-                          quantity: 1,
-                          unitPrice: first.price,
-                        },
-                      ]
-                    : current;
-                })
-              }
-            >
-              <Plus className="size-4" />
-              Add item
-            </button>
+            <h3 className="font-bold">Selected items</h3>
+            <AdminBadge>{items.length} selected</AdminBadge>
           </div>
-          <div className="space-y-3">
-            {items.map((item, index) => (
-              <div
-                key={index}
-                className="grid grid-cols-[1fr_72px_100px_40px] gap-2"
-              >
-                <select
-                  className={fieldClassName}
-                  value={item.menuItemId ?? ""}
-                  onChange={(event) =>
-                    setItems((current) => {
-                      const selected = menu.find(
-                        (candidate) => candidate.id === event.target.value,
-                      );
-                      if (!selected) return current;
-                      return current.map((candidate, itemIndex) =>
-                        itemIndex === index
-                          ? {
-                              menuItemId: selected.id,
-                              name: selected.name,
-                              quantity: candidate.quantity,
-                              unitPrice: selected.price,
-                            }
-                          : candidate,
-                      );
-                    })
-                  }
-                  required
-                  aria-label="Menu item"
-                >
-                  {!item.menuItemId && (
-                    <option value="">Select a current menu item</option>
-                  )}
-                  {menu.map((menuItem) => (
-                    <option key={menuItem.id} value={menuItem.id}>
-                      {menuItem.name}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  className={fieldClassName}
-                  type="number"
-                  min={1}
-                  max={99}
-                  value={item.quantity}
-                  onChange={(event) =>
-                    setItems((current) =>
-                      current.map((candidate, itemIndex) =>
-                        itemIndex === index
-                          ? {
-                              ...candidate,
-                              quantity: Number(event.target.value),
-                            }
-                          : candidate,
-                      ),
-                    )
-                  }
-                  aria-label="Quantity"
-                  required
-                />
+          {items.length === 0 ? (
+            <p className="rounded-xl bg-stone-50 p-4 text-center text-sm text-stone-500">
+              Select at least one menu item above.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {items.map((item) => (
                 <div
-                  className={`${fieldClassName} flex items-center bg-stone-50 text-stone-600`}
-                  aria-label="Menu price"
+                  key={item.menuItemId ?? item.name}
+                  className="flex items-center gap-3 rounded-xl border border-stone-200 bg-white p-3"
                 >
-                  {formatAdminCurrency(item.unitPrice)}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold">{item.name}</p>
+                    <p className="text-xs text-stone-500">
+                      {formatAdminCurrency(item.unitPrice)} each
+                    </p>
+                  </div>
+                  <div className="flex items-center rounded-lg bg-stone-100 p-1">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setItems((current) =>
+                          item.quantity === 1
+                            ? current.filter(
+                                (candidate) =>
+                                  candidate.menuItemId !== item.menuItemId,
+                              )
+                            : current.map((candidate) =>
+                                candidate.menuItemId === item.menuItemId
+                                  ? {
+                                      ...candidate,
+                                      quantity: candidate.quantity - 1,
+                                    }
+                                  : candidate,
+                              ),
+                        )
+                      }
+                      className="grid size-8 place-items-center rounded-md bg-white text-stone-700 hover:bg-stone-200"
+                      aria-label={`Decrease ${item.name}`}
+                    >
+                      <Minus className="size-4" />
+                    </button>
+                    <span className="w-8 text-center text-sm font-black">
+                      {item.quantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setItems((current) =>
+                          current.map((candidate) =>
+                            candidate.menuItemId === item.menuItemId
+                              ? {
+                                  ...candidate,
+                                  quantity: Math.min(
+                                    99,
+                                    candidate.quantity + 1,
+                                  ),
+                                }
+                              : candidate,
+                          ),
+                        )
+                      }
+                      className="grid size-8 place-items-center rounded-md bg-stone-950 text-white hover:bg-amber-700"
+                      aria-label={`Increase ${item.name}`}
+                    >
+                      <Plus className="size-4" />
+                    </button>
+                  </div>
+                  <p className="w-20 text-right text-sm font-black">
+                    {formatAdminCurrency(item.quantity * item.unitPrice)}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setItems((current) =>
+                        current.filter(
+                          (candidate) =>
+                            candidate.menuItemId !== item.menuItemId,
+                        ),
+                      )
+                    }
+                    className="grid size-9 place-items-center rounded-lg text-red-700 hover:bg-red-50"
+                    aria-label={`Remove ${item.name}`}
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  disabled={items.length === 1}
-                  onClick={() =>
-                    setItems((current) =>
-                      current.filter((_, itemIndex) => itemIndex !== index),
-                    )
-                  }
-                  className="grid h-11 place-items-center rounded-xl text-red-700 hover:bg-red-50 disabled:opacity-30"
-                  aria-label="Remove item"
-                >
-                  <Trash2 className="size-4" />
-                </button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-between rounded-xl bg-stone-50 p-4">

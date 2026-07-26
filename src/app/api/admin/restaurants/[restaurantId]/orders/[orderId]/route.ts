@@ -11,6 +11,14 @@ import {
   updateOrderDetails,
 } from "@/features/orders/server/order-repository";
 import type { OrderStatus } from "@/features/admin/types";
+import { isSupabaseConfigured } from "@/lib/supabase/admin";
+import {
+  deleteOrderInSupabase,
+  updateOrderDetailsInSupabase,
+  updateOrderStatusInSupabase,
+} from "@/features/orders/server/supabase-order-repository";
+import { getPaymentForOrder } from "@/features/payments/server/payment-repository";
+import { getRestaurantAvailability } from "@/features/restaurants/server/availability";
 
 const allowedStatuses: OrderStatus[] = [
   "accepted",
@@ -38,11 +46,25 @@ export async function PATCH(
     ) {
       return NextResponse.json({ error: "Invalid order status" }, { status: 400 });
     }
-    return changeStatus({
-      restaurantId,
-      orderId,
-      status: body.status as OrderStatus,
-    });
+    if (body.status === "cancelled") {
+      const payment = await getPaymentForOrder(orderId);
+      if (payment?.status === "captured") {
+        return NextResponse.json(
+          { error: "Refund the captured payment before cancelling the order" },
+          { status: 409 },
+        );
+      }
+    }
+    if (isSupabaseConfigured()) {
+      return NextResponse.json({
+        order: await updateOrderStatusInSupabase({
+          restaurantId,
+          orderId,
+          status: body.status as OrderStatus,
+        }),
+      });
+    }
+    return changeStatus({ restaurantId, orderId, status: body.status as OrderStatus });
   } catch (error) {
     if (error instanceof OrderRepositoryError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
@@ -65,6 +87,25 @@ export async function PUT(
       await parseSmallJson(request),
       restaurantId,
     );
+    if (input.paymentMethod === "cash_on_delivery") {
+      const availability = await getRestaurantAvailability(restaurantId);
+      if (!availability.cashOnDeliveryEnabled) {
+        return NextResponse.json(
+          { error: "Cash on delivery is disabled for this restaurant" },
+          { status: 409 },
+        );
+      }
+    }
+    if (isSupabaseConfigured()) {
+      return NextResponse.json({
+        order: await updateOrderDetailsInSupabase(
+          restaurantId,
+          orderId,
+          input,
+          authorization.session.sub,
+        ),
+      });
+    }
     return NextResponse.json({
       order: updateOrderDetails(restaurantId, orderId, input),
     });
@@ -86,7 +127,15 @@ export async function DELETE(
   const authorization = authorizeRestaurant(request, restaurantId, true);
   if (authorization.error) return authorization.error;
   try {
-    deleteOrder(restaurantId, orderId);
+    if (isSupabaseConfigured()) {
+      await deleteOrderInSupabase(
+        restaurantId,
+        orderId,
+        authorization.session.sub,
+      );
+    } else {
+      deleteOrder(restaurantId, orderId);
+    }
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     if (error instanceof OrderRepositoryError) {

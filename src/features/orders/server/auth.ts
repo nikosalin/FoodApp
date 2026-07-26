@@ -30,12 +30,19 @@ function signature(payload: string) {
     .digest("base64url");
 }
 
-export function createSessionToken(): string {
+export function createSessionToken(input?: {
+  sub: string;
+  email: string;
+  name: string;
+  restaurantIds: string[];
+}): string {
   const session: ServerSession = {
-    sub: "admin-demo",
-    email: "admin@foodorder.com",
-    name: "Super Admin",
-    restaurantIds: seedAdminState.restaurants.map((restaurant) => restaurant.id),
+    sub: input?.sub ?? "admin-demo",
+    email: input?.email ?? "admin@foodorder.com",
+    name: input?.name ?? "Super Admin",
+    restaurantIds:
+      input?.restaurantIds ??
+      seedAdminState.restaurants.map((restaurant) => restaurant.id),
     exp: Math.floor(Date.now() / 1000) + MAX_AGE_SECONDS,
   };
   const payload = Buffer.from(JSON.stringify(session)).toString("base64url");

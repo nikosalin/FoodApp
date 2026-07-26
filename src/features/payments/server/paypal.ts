@@ -128,6 +128,14 @@ export const paypalProvider: PaymentProviderAdapter = {
       idempotencyKey,
     );
   },
+
+  async refund() {
+    throw new PaymentError(
+      "PayPal refunds are not enabled yet",
+      501,
+      "refund_not_implemented",
+    );
+  },
 };
 
 export async function authorizeApprovedPayPalOrder(

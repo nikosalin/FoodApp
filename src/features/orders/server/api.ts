@@ -91,6 +91,7 @@ export function validateOrderInput(
     typeof body.customerPhone === "string" ? body.customerPhone.trim() : "";
   const preferredChannel = body.preferredChannel;
   const orderType = body.orderType;
+  const paymentMethod = body.paymentMethod;
 
   if (customerName.length < 2 || customerName.length > 100) {
     throw new OrderRepositoryError(
@@ -135,6 +136,36 @@ export function validateOrderInput(
   ) {
     throw new OrderRepositoryError("Invalid order type", 400);
   }
+  if (
+    paymentMethod !== "online" &&
+    paymentMethod !== "cash_on_site" &&
+    paymentMethod !== "cash_on_delivery" &&
+    paymentMethod !== "external_card"
+  ) {
+    throw new OrderRepositoryError("Invalid payment method", 400);
+  }
+  if (orderType === "delivery" && paymentMethod === "cash_on_site") {
+    throw new OrderRepositoryError(
+      "Cash on site is only available for dine-in or pickup orders",
+      400,
+    );
+  }
+  if (paymentMethod === "cash_on_delivery" && orderType !== "delivery") {
+    throw new OrderRepositoryError(
+      "Cash on delivery is only available for delivery orders",
+      400,
+    );
+  }
+  if (paymentMethod === "cash_on_delivery" && !customerPhone) {
+    throw new OrderRepositoryError(
+      "A phone number is required for cash on delivery",
+      400,
+    );
+  }
+  const deliveryAddress =
+    orderType === "delivery"
+      ? validateDeliveryAddress(body.deliveryAddress)
+      : undefined;
   if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 50) {
     throw new OrderRepositoryError("Between 1 and 50 order items are required", 400);
   }
@@ -175,9 +206,35 @@ export function validateOrderInput(
     customerEmail: customerEmail || undefined,
     customerPhone: customerPhone || undefined,
     preferredChannel,
+    paymentMethod,
     orderType,
+    deliveryAddress,
     tableNumber:
       typeof body.tableNumber === "string" ? body.tableNumber : undefined,
     items,
   };
+}
+
+function validateDeliveryAddress(value: unknown) {
+  if (!value || typeof value !== "object") {
+    throw new OrderRepositoryError("A delivery address is required", 400);
+  }
+  const address = value as Record<string, unknown>;
+  const street = typeof address.street === "string" ? address.street.trim() : "";
+  const postalCode =
+    typeof address.postalCode === "string" ? address.postalCode.trim() : "";
+  const city = typeof address.city === "string" ? address.city.trim() : "";
+  if (street.length < 3 || street.length > 120) {
+    throw new OrderRepositoryError("Invalid delivery street", 400);
+  }
+  if (!/^[0-9]{5}$/.test(postalCode)) {
+    throw new OrderRepositoryError("A valid German postal code is required", 400);
+  }
+  if (city.length < 2 || city.length > 80) {
+    throw new OrderRepositoryError("Invalid delivery city", 400);
+  }
+  if (address.countryCode !== "DE") {
+    throw new OrderRepositoryError("Delivery is available only in Germany", 400);
+  }
+  return { street, postalCode, city, countryCode: "DE" as const };
 }

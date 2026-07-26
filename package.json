@@ -7,10 +7,19 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "interface": "i18next-resources-for-ts interface -i ./src/lib/i18n/locales -o ./src/types/i18n/resources.d.ts"
+    "interface": "i18next-resources-for-ts interface -i ./src/lib/i18n/locales -o ./src/types/i18n/resources.d.ts",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:status": "supabase status",
+    "supabase:reset": "supabase db reset",
+    "supabase:lint": "supabase db lint"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
+    "@stripe/react-stripe-js": "^6.8.0",
+    "@stripe/stripe-js": "^9.12.0",
+    "@supabase/ssr": "^0.12.3",
+    "@supabase/supabase-js": "^2.110.8",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "i18next": "^26.3.6",
@@ -35,6 +44,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.11",
     "i18next-resources-for-ts": "^2.1.0",
+    "supabase": "^2.109.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

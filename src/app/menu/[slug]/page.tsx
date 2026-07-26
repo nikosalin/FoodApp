@@ -50,6 +50,9 @@ export default async function MenuPage({
       items={getPublicMenu(slug)}
       initialOrderType={initialOrderType}
       initialTable={initialTable}
+      stripePublishableKey={
+        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ""
+      }
     />
   );
 }

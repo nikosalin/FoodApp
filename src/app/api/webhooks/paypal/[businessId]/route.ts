@@ -35,7 +35,7 @@ export async function POST(
       return NextResponse.json({ error: "Invalid event" }, { status: 400 });
     }
     await verifyPayPalWebhook(businessId, request.headers, event);
-    const result = applyWebhookUpdate(paypalWebhookUpdate(businessId, event));
+    const result = await applyWebhookUpdate(paypalWebhookUpdate(businessId, event));
     return NextResponse.json({ received: true, duplicate: result.duplicate });
   } catch (error) {
     if (error instanceof PaymentError) {

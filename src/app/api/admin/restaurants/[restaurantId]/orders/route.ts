@@ -9,6 +9,12 @@ import {
   getOrdersForRestaurant,
   OrderRepositoryError,
 } from "@/features/orders/server/order-repository";
+import { isSupabaseConfigured } from "@/lib/supabase/admin";
+import {
+  createOrderInSupabase,
+  getOrdersForRestaurantFromSupabase,
+} from "@/features/orders/server/supabase-order-repository";
+import { getRestaurantAvailability } from "@/features/restaurants/server/availability";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,9 +26,18 @@ export async function GET(
   const { restaurantId } = await params;
   const authorization = authorizeRestaurant(request, restaurantId);
   if (authorization.error) return authorization.error;
-  return NextResponse.json({
-    orders: getOrdersForRestaurant(restaurantId),
-  });
+  try {
+    return NextResponse.json({
+      orders: isSupabaseConfigured()
+        ? await getOrdersForRestaurantFromSupabase(restaurantId)
+        : getOrdersForRestaurant(restaurantId),
+    });
+  } catch (error) {
+    if (error instanceof OrderRepositoryError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    return NextResponse.json({ error: "Unexpected server error" }, { status: 500 });
+  }
 }
 
 export async function POST(
@@ -34,10 +49,23 @@ export async function POST(
   if (authorization.error) return authorization.error;
   try {
     const input = validateOrderInput(await parseSmallJson(request), restaurantId);
-    return NextResponse.json(
-      { order: createOrder(input) },
-      { status: 201 },
-    );
+    if (input.paymentMethod === "cash_on_delivery") {
+      const availability = await getRestaurantAvailability(restaurantId);
+      if (!availability.cashOnDeliveryEnabled) {
+        return NextResponse.json(
+          { error: "Cash on delivery is disabled for this restaurant" },
+          { status: 409 },
+        );
+      }
+    }
+    const order = isSupabaseConfigured()
+      ? await createOrderInSupabase(input, {
+          idempotencyKey: crypto.randomUUID(),
+          source: "admin",
+          createdBy: authorization.session.sub,
+        })
+      : createOrder(input);
+    return NextResponse.json({ order }, { status: 201 });
   } catch (error) {
     if (error instanceof OrderRepositoryError) {
       return NextResponse.json({ error: error.message }, { status: error.status });

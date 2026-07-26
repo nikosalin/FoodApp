@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripeWebhookSecret } from "@/features/payments/server/config";
 import { PaymentError } from "@/features/payments/server/errors";
 import { applyWebhookUpdate } from "@/features/payments/server/payment-repository";
+import { attachOrderPayment } from "@/features/orders/server/order-repository";
+import { isSupabaseConfigured } from "@/lib/supabase/admin";
 import {
   stripeWebhookUpdate,
   verifyStripeWebhook,
@@ -31,7 +33,14 @@ export async function POST(request: NextRequest) {
     if (!event.id || !event.type || !event.data?.object?.id) {
       return NextResponse.json({ error: "Invalid event" }, { status: 400 });
     }
-    const result = applyWebhookUpdate(stripeWebhookUpdate(event));
+    const result = await applyWebhookUpdate(stripeWebhookUpdate(event));
+    if (result.payment && !isSupabaseConfigured()) {
+      attachOrderPayment(
+        result.payment.restaurantId,
+        result.payment.orderId,
+        result.payment,
+      );
+    }
     return NextResponse.json({ received: true, duplicate: result.duplicate });
   } catch (error) {
     if (error instanceof PaymentError) {

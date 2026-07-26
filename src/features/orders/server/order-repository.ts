@@ -79,11 +79,15 @@ export function createOrder(
     restaurantId: input.restaurantId,
     orderNumber: orderNumber(),
     orderType: input.orderType,
+    deliveryAddress: input.deliveryAddress
+      ? structuredClone(input.deliveryAddress)
+      : undefined,
     tableNumber: input.tableNumber?.trim() || undefined,
     customerName: input.customerName.trim(),
     customerEmail: input.customerEmail?.trim().toLowerCase() || undefined,
     customerPhone: input.customerPhone?.trim() || undefined,
     preferredChannel: input.preferredChannel,
+    paymentMethod: input.paymentMethod,
     contactVerified: options?.contactVerified ?? false,
     trackingToken: crypto.randomUUID().replaceAll("-", ""),
     notificationStatus: "pending",
@@ -108,6 +112,32 @@ export function getOrderByTrackingToken(trackingToken: string) {
   );
 }
 
+export function attachOrderPayment(
+  restaurantId: string,
+  orderId: string,
+  payment: { id: string; status: RestaurantOrder["paymentStatus"] },
+) {
+  const order = memory().orders.find(
+    (candidate) =>
+      candidate.id === orderId && candidate.restaurantId === restaurantId,
+  );
+  if (!order) throw new OrderRepositoryError("Order not found", 404);
+  order.paymentId = payment.id;
+  order.paymentStatus = payment.status;
+  order.updatedAt = new Date().toISOString();
+  emitChange(restaurantId);
+  return order;
+}
+
+export function getOrder(restaurantId: string, orderId: string) {
+  const order = memory().orders.find(
+    (candidate) =>
+      candidate.id === orderId && candidate.restaurantId === restaurantId,
+  );
+  if (!order) throw new OrderRepositoryError("Order not found", 404);
+  return order;
+}
+
 export function updateOrderDetails(
   restaurantId: string,
   orderId: string,
@@ -125,11 +155,15 @@ export function updateOrderDetails(
   const updated: RestaurantOrder = {
     ...current,
     orderType: input.orderType,
+    deliveryAddress: input.deliveryAddress
+      ? structuredClone(input.deliveryAddress)
+      : undefined,
     tableNumber: input.tableNumber?.trim() || undefined,
     customerName: input.customerName.trim(),
     customerEmail: input.customerEmail?.trim().toLowerCase() || undefined,
     customerPhone: input.customerPhone?.trim() || undefined,
     preferredChannel: input.preferredChannel,
+    paymentMethod: input.paymentMethod,
     items: structuredClone(input.items),
     total: input.items.reduce(
       (sum, item) => sum + item.quantity * item.unitPrice,

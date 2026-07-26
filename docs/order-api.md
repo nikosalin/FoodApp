@@ -1,8 +1,8 @@
 # Order API
 
-The order API currently uses a process-local in-memory repository. Its public
-contract is intentionally independent from storage so the repository can later
-be replaced with Supabase.
+The order API uses Supabase whenever the public URL and server secret are
+configured. Without those variables it falls back to the process-local
+repository so the interface can still be developed without Docker.
 
 Production security, authoritative menu pricing, idempotency, OTP, and provider
 decisions are tracked in
@@ -21,7 +21,10 @@ Stripe and PayPal setup, lifecycle, and production gates are documented in
 }
 ```
 
-Successful login sets a signed, HTTP-only, SameSite=Strict session cookie.
+When Supabase is configured, login uses Supabase Auth and restaurant access is
+derived from `business_admins`. The development fallback credentials work only
+without Supabase configuration. Successful login sets a signed, HTTP-only,
+SameSite=Strict application session cookie in addition to the Supabase session.
 Configure `SESSION_SECRET` in every deployed environment. Production startup
 rejects the development fallback secret.
 
@@ -74,15 +77,69 @@ and completed, cancelled, or rejected orders receive a closing timestamp.
 - Either a valid email address or phone number
 - A matching preferred notification channel
 - One or more menu item IDs and validated quantities
+- A payment method: `online`, `cash_on_site`, `cash_on_delivery`, or
+  `external_card`
+- For delivery, a German street, five-digit postal code, city, and country code
+  `DE`
 
 Admin-created and guest orders use the same authoritative menu resolution.
 Clients send `menuItemId` and `quantity`; the API derives the item name and
 price from the selected restaurant's menu. A menu item from another restaurant,
 an unknown item, or a caller-supplied replacement price is rejected/ignored.
+In Supabase mode, the database RPC creates the order, immutable price snapshots,
+payment row, notification outbox entry, idempotency record, and audit event in
+one transaction.
+
+`cash_on_site` is accepted only for table and takeaway orders. For takeaway it
+means that the customer declares they will collect the order and pay cash at
+the restaurant.
+
+`cash_on_delivery` is a separate restaurant-controlled method. It is accepted
+only for delivery orders, requires a phone number and valid German delivery
+address, and is rejected when the selected restaurant has disabled it. The
+customer explicitly confirms that the full amount will be paid to the driver.
+Administrators mark the payment collected through:
+
+```text
+POST /api/admin/restaurants/:restaurantId/orders/:orderId/payment-collected
+```
 
 The response exposes a random tracking token instead of the internal order ID.
 `GET /api/orders/track/:trackingToken` returns the safe guest-facing order
 status.
+
+## Restaurant ordering availability
+
+Menus and QR links remain available when a restaurant stops accepting new
+orders. Availability is scoped to each restaurant and evaluated in
+`Europe/Berlin`.
+
+- The default weekly schedule is `12:00–22:00`.
+- Administrators can edit every weekday independently.
+- **Close now** blocks new guest orders until noon the next day while existing
+  orders remain manageable.
+- **Open now** overrides the weekly schedule.
+- **Use schedule** removes the manual override.
+- Blocked restaurants never accept guest orders, even with an open override.
+
+Public availability:
+
+```text
+GET /api/restaurants/:restaurantId/availability
+```
+
+Authenticated administration:
+
+```text
+GET   /api/admin/restaurants/:restaurantId/availability
+PATCH /api/admin/restaurants/:restaurantId/availability
+```
+
+`POST /api/orders` repeats the check server-side immediately before creating
+an order. A closed restaurant returns HTTP `409` with
+`error: "ordering_closed"`. Admin-created phone, walk-in, and daily-summary
+orders remain available because they document sales rather than accept a new
+guest checkout.
 
 The current development notification adapter writes email/SMS events to an
 in-memory outbox and marks them sent asynchronously. Replace

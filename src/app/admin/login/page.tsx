@@ -6,5 +6,12 @@ export const metadata: Metadata = {
 };
 
 export default function AdminLoginPage() {
-  return <AdminLoginForm />;
+  return (
+    <AdminLoginForm
+      supabaseConfigured={Boolean(
+        process.env.NEXT_PUBLIC_SUPABASE_URL &&
+          process.env.SUPABASE_SECRET_KEY,
+      )}
+    />
+  );
 }

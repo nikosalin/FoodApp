@@ -27,7 +27,7 @@ export async function authorizeOnlinePayment(
   input: PaymentAuthorizationInput,
 ) {
   validateInput(input);
-  const payment = createPendingPayment({
+  const payment = await createPendingPayment({
     orderId: input.orderId,
     businessId: input.businessId,
     restaurantId: input.restaurantId,
@@ -41,7 +41,7 @@ export async function authorizeOnlinePayment(
 
   const authorization = await providers[provider].authorize(input);
   return {
-    payment: attachProviderPayment(
+    payment: await attachProviderPayment(
       payment.id,
       authorization.providerPaymentId,
       authorization.status,
@@ -52,7 +52,7 @@ export async function authorizeOnlinePayment(
 }
 
 export async function captureOnlinePayment(paymentId: string) {
-  const payment = getPayment(paymentId);
+  const payment = await getPayment(paymentId);
   if (!isSupportedBusinessId(payment.businessId)) {
     throw new PaymentError("Unsupported business", 400, "unsupported_business");
   }
@@ -86,10 +86,11 @@ export async function captureOnlinePayment(paymentId: string) {
     captureTarget,
     `capture/${payment.id}`,
   );
+  return await updatePaymentStatus(payment.id, "captured");
 }
 
 export async function finalizePayPalAuthorization(paymentId: string) {
-  const payment = getPayment(paymentId);
+  const payment = await getPayment(paymentId);
   if (
     payment.provider !== "paypal" ||
     !payment.providerPaymentId ||
@@ -107,11 +108,11 @@ export async function finalizePayPalAuthorization(paymentId: string) {
     payment.providerPaymentId,
     `authorize/${payment.id}`,
   );
-  return attachProviderAuthorization(payment.id, authorizationId);
+  return await attachProviderAuthorization(payment.id, authorizationId);
 }
 
 export async function cancelOnlinePayment(paymentId: string) {
-  const payment = getPayment(paymentId);
+  const payment = await getPayment(paymentId);
   if (!isSupportedBusinessId(payment.businessId)) {
     throw new PaymentError("Unsupported business", 400, "unsupported_business");
   }
@@ -130,8 +131,7 @@ export async function cancelOnlinePayment(paymentId: string) {
     );
   }
   if (payment.provider === "paypal" && !payment.providerAuthorizationId) {
-    updatePaymentStatus(payment.id, "cancelled");
-    return;
+    return await updatePaymentStatus(payment.id, "cancelled");
   }
   const cancelTarget =
     payment.provider === "paypal"
@@ -149,6 +149,35 @@ export async function cancelOnlinePayment(paymentId: string) {
     cancelTarget,
     `cancel/${payment.id}`,
   );
+  return await updatePaymentStatus(payment.id, "cancelled");
+}
+
+export async function refundOnlinePayment(paymentId: string) {
+  const payment = await getPayment(paymentId);
+  if (
+    payment.provider === "offline" ||
+    !payment.providerPaymentId ||
+    !isSupportedBusinessId(payment.businessId)
+  ) {
+    throw new PaymentError(
+      "Payment is not refundable online",
+      409,
+      "payment_not_refundable",
+    );
+  }
+  if (payment.status !== "captured") {
+    throw new PaymentError(
+      "Only captured payments can be refunded",
+      409,
+      "payment_not_captured",
+    );
+  }
+  await providers[payment.provider].refund(
+    payment.businessId,
+    payment.providerPaymentId,
+    `refund/${payment.id}`,
+  );
+  return await updatePaymentStatus(payment.id, "refunded");
 }
 
 function validateInput(input: PaymentAuthorizationInput) {
