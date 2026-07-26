@@ -46,8 +46,8 @@ customer checkout flow still needs to be connected.
 - Edit or delete eligible manual orders without using the customer menu.
 - Record cash, external card, and manually entered sales for analytics without
   creating an online payment.
-- Capture or cancel authorized online payments, issue refunds, and record cash
-  collection for cash-on-delivery orders.
+- Capture or cancel authorized online payments, issue refunds, and explicitly
+  record collection for cash-on-site and cash-on-delivery orders.
 - Per-restaurant weekly opening hours, manual open/close override, and early
   closure until the next opening period.
 - Per-restaurant cash-on-delivery switch.
@@ -109,13 +109,18 @@ variables, test cards, webhook setup, and remaining production steps.
   outbox entries, idempotency records, and audit events together.
 - A provider-neutral outbox keeps order creation independent from email-provider
   availability.
-- The intended customer notification is one confirmation email. A real
-  transactional email provider and worker still need to be connected for
-  production.
+- A protected worker sends one German order-confirmation email through Brevo
+  with exponential retries and crash recovery.
+- Authenticated Brevo webhooks record sent, delivered, bounced, and failed
+  states without retaining raw provider payloads.
+- The confirmation links to a guest-safe order page that refreshes every 15
+  seconds.
 
 See [docs/order-api.md](docs/order-api.md) for request and response details, and
 [docs/security-and-notifications-roadmap.md](docs/security-and-notifications-roadmap.md)
-for the production security and email plan.
+for the production security and email plan. Provider setup and scheduler
+instructions are in
+[docs/email.md](docs/email.md).
 
 ## Data layer
 
@@ -162,8 +167,8 @@ cp config/supabase.env.example .env.local
 
 Replace the placeholder Supabase values with the local values printed by
 `npm run supabase:status`. Add the variables from
-`config/payments.env.example` when testing Stripe or PayPal. Never commit real
-secret keys.
+`config/payments.env.example` when testing Stripe or PayPal and
+`config/email.env.example` when testing email. Never commit real secret keys.
 
 Then start the app:
 
@@ -213,7 +218,8 @@ steps:
 - register and verify production Stripe webhooks;
 - connect the PayPal approval flow to the customer checkout UI and configure
   each business merchant account;
-- connect an email provider and worker to the notification outbox;
+- verify the Brevo sender domain, configure the production webhook, and schedule
+  the email worker;
 - replace process-local rate limiting with a shared store for multi-instance
   deployment;
 - configure production Supabase, SMTP, domains, secrets, and monitoring;

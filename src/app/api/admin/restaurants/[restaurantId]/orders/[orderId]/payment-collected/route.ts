@@ -28,9 +28,12 @@ export async function POST(
     const order = usingSupabase
       ? await getOrderFromSupabase(restaurantId, orderId)
       : getOrder(restaurantId, orderId);
-    if (order.paymentMethod !== "cash_on_delivery") {
+    if (
+      order.paymentMethod !== "cash_on_site" &&
+      order.paymentMethod !== "cash_on_delivery"
+    ) {
       return NextResponse.json(
-        { error: "Only cash-on-delivery orders use this action" },
+        { error: "Only cash orders use this action" },
         { status: 409 },
       );
     }
@@ -41,7 +44,10 @@ export async function POST(
         restaurantId === "restaurant-1" ? "business-1" : "business-2",
       restaurantId,
       provider: "offline",
-      method: "cash_on_delivery",
+      method:
+        order.paymentMethod === "cash_on_delivery"
+          ? "cash_on_delivery"
+          : "cash",
       amountMinor: Math.round(order.total * 100),
       currency: "EUR",
       idempotencyKey: `cash-collected/${order.id}`,

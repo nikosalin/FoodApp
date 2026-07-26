@@ -98,11 +98,16 @@ the restaurant.
 only for delivery orders, requires a phone number and valid German delivery
 address, and is rejected when the selected restaurant has disabled it. The
 customer explicitly confirms that the full amount will be paid to the driver.
-Administrators mark the payment collected through:
+Administrators explicitly mark both cash-on-site and cash-on-delivery payments
+as collected through:
 
 ```text
 POST /api/admin/restaurants/:restaurantId/orders/:orderId/payment-collected
 ```
+
+Cash orders cannot move to `completed` until this action has captured the
+offline payment record. The action is idempotent and writes a payment audit
+event.
 
 The response exposes a random tracking token instead of the internal order ID.
 `GET /api/orders/track/:trackingToken` returns the safe guest-facing order
@@ -141,10 +146,11 @@ an order. A closed restaurant returns HTTP `409` with
 orders remain available because they document sales rather than accept a new
 guest checkout.
 
-The current development notification adapter writes email/SMS events to an
-in-memory outbox and marks them sent asynchronously. Replace
-`src/features/orders/server/notifications.ts` with Resend/Twilio provider
-adapters later.
+Without Supabase, the development notification adapter writes events to an
+in-memory outbox but does not falsely mark them delivered. In Supabase mode,
+order creation writes an email event transactionally and the protected Brevo
+worker processes it. See
+[email.md](email.md) for provider, worker, webhook, and scheduler setup.
 
 ## Security currently enforced
 
@@ -161,10 +167,5 @@ adapters later.
 - Random, non-sequential guest tracking tokens
 
 The in-memory repository resets when the server process restarts and must not be
-used as production persistence. With Supabase, replace
-`src/features/orders/server/order-repository.ts`; keep the route and client
-contracts stable.
-
-Guest item prices are accepted by the prototype because no menu repository
-exists yet. The Supabase implementation must load authoritative menu prices on
-the server and never trust prices submitted by a browser.
+used as production persistence. Supabase mode loads authoritative menu prices,
+stores price snapshots, and never trusts browser-submitted amounts.

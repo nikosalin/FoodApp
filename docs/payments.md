@@ -187,11 +187,12 @@ immutable administrator audit event.
 Customer orders may select `cash_on_site` for dine-in or takeaway. Takeaway
 customers explicitly declare that they will collect the items and pay at the
 restaurant. These orders create no Stripe or PayPal request and remain unpaid
-until an administrator records cash collection. Delivery remains
-online payment remains available for delivery. A restaurant can additionally
-enable `cash_on_delivery`. This method creates an offline pending payment,
-requires a German delivery address and phone number, and becomes captured only
-when an administrator records that the driver collected the cash.
+until an administrator records cash collection. Online payment remains
+available for delivery. A restaurant can additionally enable
+`cash_on_delivery`. This method creates an offline pending payment, requires a
+German delivery address and phone number, and becomes captured only when an
+administrator records that the driver collected the cash. Neither cash method
+can move to `completed` before collection is recorded.
 
 ## Production checklist
 

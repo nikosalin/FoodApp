@@ -7,6 +7,7 @@ import {
 } from "@/features/orders/server/api";
 import {
   deleteOrder,
+  getOrder,
   OrderRepositoryError,
   updateOrderDetails,
 } from "@/features/orders/server/order-repository";
@@ -14,6 +15,7 @@ import type { OrderStatus } from "@/features/admin/types";
 import { isSupabaseConfigured } from "@/lib/supabase/admin";
 import {
   deleteOrderInSupabase,
+  getOrderFromSupabase,
   updateOrderDetailsInSupabase,
   updateOrderStatusInSupabase,
 } from "@/features/orders/server/supabase-order-repository";
@@ -51,6 +53,22 @@ export async function PATCH(
       if (payment?.status === "captured") {
         return NextResponse.json(
           { error: "Refund the captured payment before cancelling the order" },
+          { status: 409 },
+        );
+      }
+    }
+    if (body.status === "completed") {
+      const usingSupabase = isSupabaseConfigured();
+      const order = usingSupabase
+        ? await getOrderFromSupabase(restaurantId, orderId)
+        : getOrder(restaurantId, orderId);
+      if (
+        (order.paymentMethod === "cash_on_site" ||
+          order.paymentMethod === "cash_on_delivery") &&
+        order.paymentStatus !== "captured"
+      ) {
+        return NextResponse.json(
+          { error: "Mark the cash payment collected before completing the order" },
           { status: 409 },
         );
       }

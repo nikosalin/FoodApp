@@ -83,9 +83,9 @@ const weekdayLabels = [
 
 function paymentBucket(order: RestaurantOrder): PaymentTotal["key"] {
   const isCashPaid =
-    order.paymentMethod === "cash_on_site" ||
-    (order.paymentMethod === "cash_on_delivery" &&
-      order.paymentStatus === "captured");
+    (order.paymentMethod === "cash_on_site" ||
+      order.paymentMethod === "cash_on_delivery") &&
+    order.paymentStatus === "captured";
   if (isCashPaid) return "cash";
   const isCardPaid =
     order.paymentMethod === "external_card" ||
@@ -576,9 +576,9 @@ export function AnalyticsPanel() {
           </div>
         </div>
         <p className="mt-4 text-xs leading-5 text-stone-500">
-          Completed cash-on-site orders count as collected. Cash on delivery
-          counts only after “mark cash collected”; online cards count only after
-          capture, while external-terminal orders are recorded as card paid.
+          Cash orders count only after “mark cash collected”; online cards
+          count only after capture, while external-terminal orders are recorded
+          as card paid.
         </p>
       </AdminCard>
 

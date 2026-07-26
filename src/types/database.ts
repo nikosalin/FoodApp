@@ -378,6 +378,42 @@ export type Database = {
         >;
         Relationships: [];
       };
+      notification_outbox: {
+        Row: {
+          id: string;
+          order_id: string | null;
+          event_type: string;
+          channel: "email";
+          recipient: string;
+          template_data: Json;
+          status: Database["public"]["Enums"]["notification_status"];
+          provider_message_id: string | null;
+          attempt_count: number;
+          next_attempt_at: string;
+          last_error_code: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          order_id?: string | null;
+          event_type: string;
+          channel?: "email";
+          recipient: string;
+          template_data?: Json;
+          status?: Database["public"]["Enums"]["notification_status"];
+          provider_message_id?: string | null;
+          attempt_count?: number;
+          next_attempt_at?: string;
+          last_error_code?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["notification_outbox"]["Insert"]
+        >;
+        Relationships: [];
+      };
       audit_events: {
         Row: {
           id: string;
@@ -446,6 +482,12 @@ export type Database = {
         };
         Returns: string;
       };
+      claim_notification_jobs: {
+        Args: {
+          p_limit?: number;
+        };
+        Returns: Database["public"]["Tables"]["notification_outbox"]["Row"][];
+      };
     };
     Enums: {
       restaurant_status: "active" | "trial" | "blocked";
@@ -475,6 +517,13 @@ export type Database = {
         | "captured"
         | "cancelled"
         | "refunded"
+        | "failed";
+      notification_status:
+        | "queued"
+        | "sending"
+        | "sent"
+        | "delivered"
+        | "bounced"
         | "failed";
     };
     CompositeTypes: Record<string, never>;

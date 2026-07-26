@@ -629,7 +629,8 @@ function OrderActions({
         <Trash2 className="size-4" />
         Delete
       </button>
-      {order.paymentStatus === "captured" && (
+      {order.paymentMethod === "online" &&
+        order.paymentStatus === "captured" && (
         <button
           type="button"
           disabled={busy}
@@ -640,7 +641,8 @@ function OrderActions({
           Refund payment
         </button>
       )}
-      {order.paymentMethod === "cash_on_delivery" &&
+      {(order.paymentMethod === "cash_on_site" ||
+        order.paymentMethod === "cash_on_delivery") &&
         order.paymentStatus !== "captured" &&
         order.paymentStatus !== "refunded" && (
           <button
