@@ -13,6 +13,7 @@ import { PaymentError } from "@/features/payments/server/errors";
 import { isSupabaseConfigured } from "@/lib/supabase/admin";
 import {
   getOrderFromSupabase,
+  recordOrderEvent,
   updateOrderStatusInSupabase,
 } from "@/features/orders/server/supabase-order-repository";
 import { getPaymentForOrder } from "@/features/payments/server/payment-repository";
@@ -42,6 +43,15 @@ export async function POST(
         );
       }
       const payment = await captureOnlinePayment(paymentId);
+      if (usingSupabase) {
+        await recordOrderEvent({
+          restaurantId,
+          orderId,
+          actorUserId: authorization.session.sub,
+          eventType: "payment.captured",
+          details: { paymentId: payment.id },
+        });
+      }
       if (!usingSupabase) attachOrderPayment(restaurantId, orderId, payment);
     }
     return NextResponse.json({
@@ -50,6 +60,7 @@ export async function POST(
             restaurantId,
             orderId,
             status: "accepted",
+            actorUserId: authorization.session.sub,
           })
         : updateOrderStatus({
             restaurantId,

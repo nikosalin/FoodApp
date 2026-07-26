@@ -79,6 +79,7 @@ export async function PATCH(
           restaurantId,
           orderId,
           status: body.status as OrderStatus,
+          actorUserId: authorization.session.sub,
         }),
       });
     }

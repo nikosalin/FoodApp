@@ -37,6 +37,10 @@ customer checkout flow still needs to be connected.
 - Two seeded administrators can access both seeded businesses and restaurants.
 - Restaurant selector keeps operational views and analytics restaurant-specific.
 - Pending and closed order queues with daily revenue totals.
+- Searchable closed-order archive with status, payment-method, and date filters.
+- Immutable per-order timeline for creation, status changes, edits, payment
+  actions, deletion, and restoration, including administrator attribution.
+- Soft-deleted order view with audited restoration.
 - Status workflow: pending, accepted, preparing, ready, completed, declined, and
   cancelled.
 - Accept or decline incoming orders and progress accepted orders through

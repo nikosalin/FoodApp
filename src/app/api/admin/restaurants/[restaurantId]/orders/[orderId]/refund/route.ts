@@ -8,7 +8,10 @@ import {
 import { PaymentError } from "@/features/payments/server/errors";
 import { refundOnlinePayment } from "@/features/payments/server/service";
 import { isSupabaseConfigured } from "@/lib/supabase/admin";
-import { getOrderFromSupabase } from "@/features/orders/server/supabase-order-repository";
+import {
+  getOrderFromSupabase,
+  recordOrderEvent,
+} from "@/features/orders/server/supabase-order-repository";
 import { getPaymentForOrder } from "@/features/payments/server/payment-repository";
 
 export async function POST(
@@ -34,6 +37,15 @@ export async function POST(
       );
     }
     const payment = await refundOnlinePayment(paymentId);
+    if (usingSupabase) {
+      await recordOrderEvent({
+        restaurantId,
+        orderId,
+        actorUserId: authorization.session.sub,
+        eventType: "payment.refunded",
+        details: { paymentId: payment.id },
+      });
+    }
     return NextResponse.json({
       order: usingSupabase
         ? { ...order, paymentId: payment.id, paymentStatus: payment.status }

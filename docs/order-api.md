@@ -38,9 +38,12 @@ restaurant.
 
 - `GET /api/admin/restaurants/:restaurantId/orders`
 - `GET /api/admin/restaurants/:restaurantId/orders/stream`
+- `GET /api/admin/restaurants/:restaurantId/orders/deleted`
 - `POST /api/admin/restaurants/:restaurantId/orders`
+- `GET /api/admin/restaurants/:restaurantId/orders/:orderId/history`
 - `PUT /api/admin/restaurants/:restaurantId/orders/:orderId`
 - `DELETE /api/admin/restaurants/:restaurantId/orders/:orderId`
+- `POST /api/admin/restaurants/:restaurantId/orders/:orderId/restore`
 - `POST /api/admin/restaurants/:restaurantId/orders/:orderId/accept`
 - `POST /api/admin/restaurants/:restaurantId/orders/:orderId/decline`
 - `PATCH /api/admin/restaurants/:restaurantId/orders/:orderId`
@@ -68,6 +71,25 @@ accepted/preparing/ready -> cancelled
 
 Terminal orders cannot be reopened through the API. Declining requires a reason,
 and completed, cancelled, or rejected orders receive a closing timestamp.
+
+## Order history
+
+Supabase stores an append-only `order_events` timeline. Database triggers and
+service-only operations record creation and status changes, while application
+operations add administrator-attributed edit, payment, soft-delete, and restore
+events. Existing orders receive a backfilled creation event when the migration
+is applied.
+
+History rows cannot be updated or deleted. RLS allows authenticated
+administrators to read events only for businesses they belong to. The history
+endpoint verifies restaurant access before returning safe event details and
+administrator display names.
+
+Order deletion sets `deleted_at`; it does not physically remove the order,
+items, payments, or history. Deleted orders are excluded from normal lists and
+analytics, remain visible in the restaurant-scoped deleted view, and can be
+restored by an authorized administrator. The admin archive supports
+order/customer search plus status, payment-method, and closed-date filters.
 
 ## Guest checkout
 

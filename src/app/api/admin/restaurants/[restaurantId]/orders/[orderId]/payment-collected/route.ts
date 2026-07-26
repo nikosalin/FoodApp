@@ -5,7 +5,10 @@ import {
   getOrder,
   OrderRepositoryError,
 } from "@/features/orders/server/order-repository";
-import { getOrderFromSupabase } from "@/features/orders/server/supabase-order-repository";
+import {
+  getOrderFromSupabase,
+  recordOrderEvent,
+} from "@/features/orders/server/supabase-order-repository";
 import {
   createPendingPayment,
   getPaymentForOrder,
@@ -58,6 +61,15 @@ export async function POST(
       authorization.session.sub,
       "payment.cash_collected",
     );
+    if (usingSupabase) {
+      await recordOrderEvent({
+        restaurantId,
+        orderId,
+        actorUserId: authorization.session.sub,
+        eventType: "payment.cash_collected",
+        details: { paymentId: payment.id },
+      });
+    }
     return NextResponse.json({
       order: usingSupabase
         ? { ...order, paymentId: payment.id, paymentStatus: payment.status }

@@ -82,6 +82,21 @@ export type RestaurantOrder = {
   updatedAt?: string;
 };
 
+export type OrderHistoryEvent = {
+  id: string;
+  orderId: string;
+  eventType: string;
+  fromStatus?: OrderStatus;
+  toStatus?: OrderStatus;
+  actorName?: string;
+  details: Record<string, string | number | boolean | null>;
+  createdAt: string;
+};
+
+export type DeletedRestaurantOrder = RestaurantOrder & {
+  deletedAt: string;
+};
+
 export type OrderInput = {
   restaurantId: string;
   orderType: RestaurantOrder["orderType"];

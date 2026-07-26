@@ -14,6 +14,7 @@ import { PaymentError } from "@/features/payments/server/errors";
 import { isSupabaseConfigured } from "@/lib/supabase/admin";
 import {
   getOrderFromSupabase,
+  recordOrderEvent,
   updateOrderStatusInSupabase,
 } from "@/features/orders/server/supabase-order-repository";
 import { getPaymentForOrder } from "@/features/payments/server/payment-repository";
@@ -47,6 +48,15 @@ export async function POST(
       current.paymentId ?? (await getPaymentForOrder(current.id))?.id;
     if (current.paymentMethod === "online" && paymentId) {
       const payment = await cancelOnlinePayment(paymentId);
+      if (usingSupabase) {
+        await recordOrderEvent({
+          restaurantId,
+          orderId,
+          actorUserId: authorization.session.sub,
+          eventType: "payment.cancelled",
+          details: { paymentId: payment.id },
+        });
+      }
       if (payment && !usingSupabase) {
         attachOrderPayment(restaurantId, orderId, payment);
       }
@@ -58,6 +68,7 @@ export async function POST(
             orderId,
             status: "rejected",
             rejectionReason: body.reason,
+            actorUserId: authorization.session.sub,
           })
         : updateOrderStatus({
             restaurantId,

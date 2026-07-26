@@ -7,12 +7,15 @@ import {
   ChefHat,
   Clock3,
   Euro,
+  History,
   Minus,
   Package,
   Pencil,
   Play,
   Plus,
   ReceiptText,
+  RotateCcw,
+  Search,
   ShoppingBag,
   Store,
   User,
@@ -28,14 +31,19 @@ import {
   deleteAdminOrder,
   declineOrder,
   editAdminOrder,
+  getDeletedOrders,
+  getOrderHistory,
   getRestaurantOrders,
   markCashCollected,
   refundOrder,
+  restoreDeletedOrder,
   subscribeToRestaurantOrders,
   updateOrderStatus,
 } from "@/features/orders/lib/order-api";
 import type {
+  DeletedRestaurantOrder,
   OrderInput,
+  OrderHistoryEvent,
   OrderStatus,
   Restaurant,
   RestaurantOrder,
@@ -72,7 +80,19 @@ export function RestaurantOrderOverview({
 }) {
   const [restaurant, setRestaurant] = useState<Restaurant | null>();
   const [orders, setOrders] = useState<RestaurantOrder[]>([]);
-  const [view, setView] = useState<"pending" | "closed">("pending");
+  const [view, setView] = useState<"pending" | "closed" | "deleted">("pending");
+  const [deletedOrders, setDeletedOrders] = useState<DeletedRestaurantOrder[]>([]);
+  const [deletedLoaded, setDeletedLoaded] = useState(false);
+  const [historyTarget, setHistoryTarget] = useState<RestaurantOrder | null>(null);
+  const [historyEvents, setHistoryEvents] = useState<OrderHistoryEvent[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [archiveSearch, setArchiveSearch] = useState("");
+  const [archiveStatus, setArchiveStatus] = useState<"all" | OrderStatus>("all");
+  const [archiveFrom, setArchiveFrom] = useState("");
+  const [archiveTo, setArchiveTo] = useState("");
+  const [archivePayment, setArchivePayment] = useState<
+    "all" | NonNullable<RestaurantOrder["paymentMethod"]>
+  >("all");
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [error, setError] = useState("");
   const [busyOrderId, setBusyOrderId] = useState<string>();
@@ -119,6 +139,34 @@ export function RestaurantOrderOverview({
     };
   }, [restaurantId]);
 
+  useEffect(() => {
+    if (view !== "deleted" || deletedLoaded) return;
+    getDeletedOrders(restaurantId)
+      .then((result) => {
+        setDeletedOrders(result);
+        setDeletedLoaded(true);
+      })
+      .catch((reason: unknown) => {
+        setError(
+          reason instanceof Error ? reason.message : "Unable to load deleted orders",
+        );
+      });
+  }, [deletedLoaded, restaurantId, view]);
+
+  const openHistory = async (order: RestaurantOrder) => {
+    setHistoryTarget(order);
+    setHistoryEvents([]);
+    setHistoryLoading(true);
+    try {
+      setHistoryEvents(await getOrderHistory(restaurantId, order.id));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Unable to load history");
+      setHistoryTarget(null);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
   const runOrderMutation = async (
     orderId: string,
     mutation: () => Promise<RestaurantOrder>,
@@ -159,6 +207,41 @@ export function RestaurantOrderOverview({
     };
   }, [orders]);
 
+  const visibleOrders = useMemo(() => {
+    const source = view === "pending" ? summary.pending : summary.closed;
+    if (view !== "closed") return source;
+    const query = archiveSearch.trim().toLowerCase();
+    return source.filter((order) => {
+      const matchesSearch =
+        !query ||
+        order.orderNumber.toLowerCase().includes(query) ||
+        order.customerName.toLowerCase().includes(query) ||
+        order.customerEmail?.toLowerCase().includes(query) ||
+        order.customerPhone?.toLowerCase().includes(query);
+      const orderDate = new Date(order.closedAt ?? order.createdAt);
+      const matchesFrom =
+        !archiveFrom || orderDate >= new Date(`${archiveFrom}T00:00:00`);
+      const matchesTo =
+        !archiveTo || orderDate <= new Date(`${archiveTo}T23:59:59.999`);
+      return (
+        matchesSearch &&
+        matchesFrom &&
+        matchesTo &&
+        (archiveStatus === "all" || order.status === archiveStatus) &&
+        (archivePayment === "all" || order.paymentMethod === archivePayment)
+      );
+    });
+  }, [
+    archivePayment,
+    archiveFrom,
+    archiveSearch,
+    archiveStatus,
+    archiveTo,
+    summary.closed,
+    summary.pending,
+    view,
+  ]);
+
   if (restaurant === undefined) {
     return <p className="text-sm text-stone-500">Loading restaurant orders…</p>;
   }
@@ -178,9 +261,6 @@ export function RestaurantOrderOverview({
       </AdminCard>
     );
   }
-
-  const visibleOrders =
-    view === "pending" ? summary.pending : summary.closed;
 
   return (
     <div className="space-y-6">
@@ -277,9 +357,125 @@ export function RestaurantOrderOverview({
           onClick={() => setView("closed")}
           label={`Closed (${summary.closed.length})`}
         />
+        <OrderTab
+          active={view === "deleted"}
+          onClick={() => setView("deleted")}
+          label={`Deleted${deletedLoaded ? ` (${deletedOrders.length})` : ""}`}
+        />
       </div>
 
-      {loadingOrders ? (
+      {view === "closed" && (
+        <AdminCard>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_12rem_13rem_10rem_10rem]">
+            <label className="relative">
+              <Search className="absolute left-3 top-3.5 size-4 text-stone-400" />
+              <input
+                className={`${fieldClassName} pl-9`}
+                value={archiveSearch}
+                onChange={(event) => setArchiveSearch(event.target.value)}
+                placeholder="Order, customer, email or phone"
+                aria-label="Search closed orders"
+              />
+            </label>
+            <select
+              className={fieldClassName}
+              value={archiveStatus}
+              onChange={(event) =>
+                setArchiveStatus(event.target.value as "all" | OrderStatus)
+              }
+              aria-label="Filter by order status"
+            >
+              <option value="all">All statuses</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="rejected">Rejected</option>
+            </select>
+            <select
+              className={fieldClassName}
+              value={archivePayment}
+              onChange={(event) =>
+                setArchivePayment(
+                  event.target.value as typeof archivePayment,
+                )
+              }
+              aria-label="Filter by payment method"
+            >
+              <option value="all">All payment methods</option>
+              <option value="online">Online card</option>
+              <option value="cash_on_site">Cash on site</option>
+              <option value="cash_on_delivery">Cash on delivery</option>
+              <option value="external_card">External terminal</option>
+            </select>
+            <label>
+              <span className="sr-only">Closed from date</span>
+              <input
+                type="date"
+                className={fieldClassName}
+                value={archiveFrom}
+                onChange={(event) => setArchiveFrom(event.target.value)}
+                aria-label="Closed from date"
+              />
+            </label>
+            <label>
+              <span className="sr-only">Closed through date</span>
+              <input
+                type="date"
+                className={fieldClassName}
+                value={archiveTo}
+                min={archiveFrom || undefined}
+                onChange={(event) => setArchiveTo(event.target.value)}
+                aria-label="Closed through date"
+              />
+            </label>
+          </div>
+        </AdminCard>
+      )}
+
+      {view === "deleted" ? (
+        !deletedLoaded ? (
+          <AdminCard className="py-14 text-center">
+            <p className="text-stone-500">Loading deleted orders…</p>
+          </AdminCard>
+        ) : deletedOrders.length === 0 ? (
+          <AdminCard className="py-14 text-center">
+            <Trash2 className="mx-auto size-14 text-stone-300" />
+            <h2 className="mt-4 text-xl font-bold">No deleted orders</h2>
+          </AdminCard>
+        ) : (
+          <div className="grid gap-4">
+            {deletedOrders.map((order) => (
+              <DeletedOrderCard
+                key={order.id}
+                order={order}
+                busy={busyOrderId === order.id}
+                onHistory={() => void openHistory(order)}
+                onRestore={async () => {
+                  setBusyOrderId(order.id);
+                  setError("");
+                  try {
+                    const restored = await restoreDeletedOrder(
+                      restaurantId,
+                      order.id,
+                    );
+                    setDeletedOrders((current) =>
+                      current.filter((item) => item.id !== order.id),
+                    );
+                    setOrders((current) => [restored, ...current]);
+                  } catch (reason) {
+                    setError(
+                      reason instanceof Error
+                        ? reason.message
+                        : "Unable to restore order",
+                    );
+                  } finally {
+                    setBusyOrderId(undefined);
+                  }
+                }}
+              />
+            ))}
+          </div>
+        )
+      ) : loadingOrders ? (
         <AdminCard className="py-14 text-center">
           <p className="text-stone-500">Loading orders from the API…</p>
         </AdminCard>
@@ -324,7 +520,7 @@ export function RestaurantOrderOverview({
                 onDelete={async () => {
                   if (
                     !window.confirm(
-                      `Delete order #${order.orderNumber}? This cannot be undone.`,
+                      `Move order #${order.orderNumber} to deleted orders?`,
                     )
                   ) {
                     return;
@@ -335,6 +531,7 @@ export function RestaurantOrderOverview({
                     setOrders((current) =>
                       current.filter((item) => item.id !== order.id),
                     );
+                    setDeletedLoaded(false);
                   } catch (reason) {
                     setError(
                       reason instanceof Error
@@ -358,6 +555,7 @@ export function RestaurantOrderOverview({
                     markCashCollected(restaurantId, order.id),
                   )
                 }
+                onHistory={() => void openHistory(order)}
               />
             ))}
         </div>
@@ -406,8 +604,158 @@ export function RestaurantOrderOverview({
           }}
         />
       )}
+      {historyTarget && (
+        <OrderHistoryModal
+          order={historyTarget}
+          events={historyEvents}
+          loading={historyLoading}
+          onClose={() => setHistoryTarget(null)}
+        />
+      )}
     </div>
   );
+}
+
+function DeletedOrderCard({
+  order,
+  busy,
+  onRestore,
+  onHistory,
+}: {
+  order: DeletedRestaurantOrder;
+  busy: boolean;
+  onRestore: () => void;
+  onHistory: () => void;
+}) {
+  return (
+    <AdminCard>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Trash2 className="size-5 text-stone-500" />
+            <h2 className="text-lg font-black">Order #{order.orderNumber}</h2>
+            <AdminBadge>{order.status}</AdminBadge>
+          </div>
+          <p className="mt-2 text-sm text-stone-500">
+            {order.customerName} · {formatAdminCurrency(order.total)}
+          </p>
+          <p className="mt-1 text-xs text-stone-500">
+            Deleted {formatAdminDate(order.deletedAt)}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className={secondaryButtonClassName}
+            onClick={onHistory}
+            disabled={busy}
+          >
+            <History className="size-4" />
+            View history
+          </button>
+          <button
+            type="button"
+            className={primaryButtonClassName}
+            onClick={onRestore}
+            disabled={busy}
+          >
+            <RotateCcw className="size-4" />
+            Restore
+          </button>
+        </div>
+      </div>
+    </AdminCard>
+  );
+}
+
+function OrderHistoryModal({
+  order,
+  events,
+  loading,
+  onClose,
+}: {
+  order: RestaurantOrder;
+  events: OrderHistoryEvent[];
+  loading: boolean;
+  onClose: () => void;
+}) {
+  return (
+    <AdminModal title={`History · #${order.orderNumber}`} onClose={onClose}>
+      {loading ? (
+        <p className="py-8 text-center text-stone-500">Loading history…</p>
+      ) : events.length === 0 ? (
+        <p className="py-8 text-center text-stone-500">
+          No historical events recorded.
+        </p>
+      ) : (
+        <ol className="relative ml-2 border-l border-stone-200">
+          {events.map((event) => (
+            <li key={event.id} className="relative pb-6 pl-6 last:pb-0">
+              <span className="absolute -left-2 top-1.5 size-4 rounded-full border-4 border-white bg-amber-600" />
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <p className="font-bold">{historyEventLabel(event)}</p>
+                <time className="text-xs text-stone-500">
+                  {formatAdminDate(event.createdAt)}
+                </time>
+              </div>
+              <p className="mt-1 text-sm text-stone-500">
+                {event.actorName ?? "System"}
+              </p>
+              {event.fromStatus && event.toStatus && (
+                <p className="mt-2 text-sm text-stone-700">
+                  {event.fromStatus} → <strong>{event.toStatus}</strong>
+                </p>
+              )}
+              {Object.keys(event.details).length > 0 && (
+                <dl className="mt-2 grid gap-1 rounded-lg bg-stone-50 p-3 text-xs">
+                  {Object.entries(event.details).map(([key, value]) => (
+                    <div key={key} className="flex justify-between gap-4">
+                      <dt className="text-stone-500">{detailLabel(key)}</dt>
+                      <dd className="max-w-64 text-right font-medium">
+                        {formatDetailValue(key, value)}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+            </li>
+          ))}
+        </ol>
+      )}
+    </AdminModal>
+  );
+}
+
+function historyEventLabel(event: OrderHistoryEvent) {
+  const labels: Record<string, string> = {
+    "order.created": "Order created",
+    "order.status_changed": "Status changed",
+    "order.edited": "Order edited",
+    "order.deleted": "Order deleted",
+    "order.restored": "Order restored",
+    "payment.captured": "Card payment captured",
+    "payment.cancelled": "Payment authorization cancelled",
+    "payment.refunded": "Payment refunded",
+    "payment.cash_collected": "Cash collected",
+  };
+  return labels[event.eventType] ?? event.eventType.replaceAll("_", " ");
+}
+
+function detailLabel(key: string) {
+  return key
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (character) => character.toUpperCase());
+}
+
+function formatDetailValue(
+  key: string,
+  value: string | number | boolean | null,
+) {
+  if (value === null) return "—";
+  if (key.toLowerCase().includes("minor") && typeof value === "number") {
+    return formatAdminCurrency(value / 100);
+  }
+  return String(value);
 }
 
 function SummaryCard({
@@ -472,6 +820,7 @@ function OrderCard({
   onDelete,
   onRefund,
   onCashCollected,
+  onHistory,
 }: {
   order: RestaurantOrder;
   busy: boolean;
@@ -484,6 +833,7 @@ function OrderCard({
   onDelete: () => void;
   onRefund: () => void;
   onCashCollected: () => void;
+  onHistory: () => void;
 }) {
   const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
   const statusTone = closedStatuses.includes(order.status)
@@ -577,6 +927,7 @@ function OrderCard({
             onDelete={onDelete}
             onRefund={onRefund}
             onCashCollected={onCashCollected}
+            onHistory={onHistory}
           />
         </div>
       </div>
@@ -594,6 +945,7 @@ function OrderActions({
   onDelete,
   onRefund,
   onCashCollected,
+  onHistory,
 }: {
   order: RestaurantOrder;
   busy: boolean;
@@ -606,9 +958,19 @@ function OrderActions({
   onDelete: () => void;
   onRefund: () => void;
   onCashCollected: () => void;
+  onHistory: () => void;
 }) {
   const managementActions = (
     <div className="mt-2 flex gap-2 lg:flex-col">
+      <button
+        type="button"
+        disabled={busy}
+        onClick={onHistory}
+        className={secondaryButtonClassName}
+      >
+        <History className="size-4" />
+        View history
+      </button>
       {!closedStatuses.includes(order.status) && (
         <button
           type="button"

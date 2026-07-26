@@ -2,7 +2,9 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 import type {
+  DeletedRestaurantOrder,
   OrderInput,
+  OrderHistoryEvent,
   OrderStatus,
   RestaurantOrder,
 } from "@/features/admin/types";
@@ -150,30 +152,20 @@ export async function updateOrderStatusInSupabase(input: {
   orderId: string;
   status: OrderStatus;
   rejectionReason?: string;
+  actorUserId: string;
 }) {
   const client = requireAdminClient();
-  const now = new Date().toISOString();
-  const changes = {
-    status: input.status,
-    rejection_reason:
-      input.status === "rejected" ? input.rejectionReason : null,
-    accepted_at: input.status === "accepted" ? now : undefined,
-    closed_at: ["completed", "cancelled", "rejected"].includes(input.status)
-      ? now
-      : undefined,
-  };
-  const { data, error } = await client
-    .from("orders")
-    .update(changes)
-    .eq("id", input.orderId)
-    .eq("restaurant_id", databaseRestaurantId(input.restaurantId))
-    .is("deleted_at", null)
-    .select("id")
-    .maybeSingle();
+  const { data, error } = await client.rpc("transition_order_status", {
+    p_order_id: input.orderId,
+    p_restaurant_id: databaseRestaurantId(input.restaurantId),
+    p_status: input.status,
+    p_rejection_reason: input.rejectionReason ?? null,
+    p_actor_user_id: input.actorUserId,
+  });
   if (error) throw repositoryError(error.message);
   if (!data) throw new OrderRepositoryError("Order not found", 404);
 
-  const order = await getOrderById(client, data.id);
+  const order = await getOrderById(client, data);
   if (!order) throw new OrderRepositoryError("Order not found", 404);
   return order;
 }
@@ -235,6 +227,14 @@ export async function deleteOrderInSupabase(
     safe_changes: { previousStatus: existing.data.status },
   });
   if (audit.error) throw repositoryError(audit.error.message);
+  await insertOrderEvent({
+    orderId,
+    businessId: existing.data.business_id,
+    restaurantId: existing.data.restaurant_id,
+    actorUserId,
+    eventType: "order.deleted",
+    details: { previousStatus: existing.data.status },
+  });
 }
 
 export async function updateOrderDetailsInSupabase(
@@ -244,6 +244,7 @@ export async function updateOrderDetailsInSupabase(
   actorUserId: string,
 ) {
   const client = requireAdminClient();
+  const previous = await getOrderFromSupabase(restaurantId, orderId);
   const result = await client.rpc("update_order_from_menu", {
     p_order_id: orderId,
     p_restaurant_id: databaseRestaurantId(restaurantId),
@@ -271,7 +272,217 @@ export async function updateOrderDetailsInSupabase(
     const status = result.error.message.includes("cannot be edited") ? 409 : 400;
     throw new OrderRepositoryError(result.error.message, status);
   }
-  return await getOrderFromSupabase(restaurantId, orderId);
+  const updated = await getOrderFromSupabase(restaurantId, orderId);
+  const databaseOrder = await client
+    .from("orders")
+    .select("business_id, restaurant_id")
+    .eq("id", orderId)
+    .maybeSingle();
+  if (databaseOrder.error || !databaseOrder.data) {
+    throw repositoryError(databaseOrder.error?.message ?? "Order not found");
+  }
+  await insertOrderEvent({
+    orderId,
+    businessId: databaseOrder.data.business_id,
+    restaurantId: databaseOrder.data.restaurant_id,
+    actorUserId,
+    eventType: "order.edited",
+    details: {
+      previousTotalMinor: Math.round(previous.total * 100),
+      newTotalMinor: Math.round(updated.total * 100),
+      previousPaymentMethod: previous.paymentMethod ?? "unknown",
+      newPaymentMethod: updated.paymentMethod ?? "unknown",
+      previousItemCount: previous.items.reduce(
+        (sum, item) => sum + item.quantity,
+        0,
+      ),
+      newItemCount: updated.items.reduce(
+        (sum, item) => sum + item.quantity,
+        0,
+      ),
+    },
+  });
+  return updated;
+}
+
+export async function getOrderHistoryFromSupabase(
+  restaurantId: string,
+  orderId: string,
+) {
+  const client = requireAdminClient();
+  const databaseId = databaseRestaurantId(restaurantId);
+  const order = await client
+    .from("orders")
+    .select("id")
+    .eq("id", orderId)
+    .eq("restaurant_id", databaseId)
+    .maybeSingle();
+  if (order.error) throw repositoryError(order.error.message);
+  if (!order.data) throw new OrderRepositoryError("Order not found", 404);
+  const events = await client
+    .from("order_events")
+    .select("*")
+    .eq("order_id", orderId)
+    .eq("restaurant_id", databaseId)
+    .order("created_at", { ascending: false });
+  if (events.error) throw repositoryError(events.error.message);
+  const actorIds = [
+    ...new Set(
+      events.data
+        .map((event) => event.actor_user_id)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
+  const profiles =
+    actorIds.length === 0
+      ? { data: [], error: null }
+      : await client.from("profiles").select("id, display_name").in("id", actorIds);
+  if (profiles.error) throw repositoryError(profiles.error.message);
+  const names = new Map(
+    (profiles.data ?? []).map((profile) => [profile.id, profile.display_name]),
+  );
+  return events.data.map(
+    (event): OrderHistoryEvent => ({
+      id: event.id,
+      orderId: event.order_id,
+      eventType: event.event_type,
+      fromStatus: event.from_status ?? undefined,
+      toStatus: event.to_status ?? undefined,
+      actorName: event.actor_user_id
+        ? names.get(event.actor_user_id) ?? "Administrator"
+        : "System",
+      details: jsonDetails(event.details),
+      createdAt: event.created_at,
+    }),
+  );
+}
+
+export async function getDeletedOrdersFromSupabase(restaurantId: string) {
+  const client = requireAdminClient();
+  const databaseId = databaseRestaurantId(restaurantId);
+  const result = await client
+    .from("orders")
+    .select("*")
+    .eq("restaurant_id", databaseId)
+    .not("deleted_at", "is", null)
+    .order("deleted_at", { ascending: false });
+  if (result.error) throw repositoryError(result.error.message);
+  if (result.data.length === 0) return [];
+  const items = await client
+    .from("order_items")
+    .select("*")
+    .in("order_id", result.data.map((order) => order.id));
+  if (items.error) throw repositoryError(items.error.message);
+  const itemsByOrder = new Map<string, TableRow<"order_items">[]>();
+  for (const item of items.data) {
+    const current = itemsByOrder.get(item.order_id) ?? [];
+    current.push(item);
+    itemsByOrder.set(item.order_id, current);
+  }
+  return result.data.map(
+    (order): DeletedRestaurantOrder => ({
+      ...mapOrder(order, itemsByOrder.get(order.id) ?? []),
+      deletedAt: order.deleted_at!,
+    }),
+  );
+}
+
+export async function restoreOrderInSupabase(
+  restaurantId: string,
+  orderId: string,
+  actorUserId: string,
+) {
+  const client = requireAdminClient();
+  const existing = await client
+    .from("orders")
+    .select("id, business_id, restaurant_id, status")
+    .eq("id", orderId)
+    .eq("restaurant_id", databaseRestaurantId(restaurantId))
+    .not("deleted_at", "is", null)
+    .maybeSingle();
+  if (existing.error) throw repositoryError(existing.error.message);
+  if (!existing.data) throw new OrderRepositoryError("Deleted order not found", 404);
+  const restored = await client
+    .from("orders")
+    .update({ deleted_at: null })
+    .eq("id", orderId)
+    .not("deleted_at", "is", null)
+    .select("id")
+    .maybeSingle();
+  if (restored.error || !restored.data) {
+    throw repositoryError(restored.error?.message ?? "Order could not be restored");
+  }
+  await insertOrderEvent({
+    orderId,
+    businessId: existing.data.business_id,
+    restaurantId: existing.data.restaurant_id,
+    actorUserId,
+    eventType: "order.restored",
+    details: { status: existing.data.status },
+  });
+  const order = await getOrderById(client, orderId);
+  if (!order) throw repositoryError("Restored order could not be loaded");
+  return order;
+}
+
+export async function recordOrderEvent(input: {
+  restaurantId: string;
+  orderId: string;
+  actorUserId?: string;
+  eventType: string;
+  details?: Record<string, Json>;
+}) {
+  const client = requireAdminClient();
+  const order = await client
+    .from("orders")
+    .select("business_id, restaurant_id")
+    .eq("id", input.orderId)
+    .eq("restaurant_id", databaseRestaurantId(input.restaurantId))
+    .maybeSingle();
+  if (order.error || !order.data) {
+    throw repositoryError(order.error?.message ?? "Order not found");
+  }
+  await insertOrderEvent({
+    orderId: input.orderId,
+    businessId: order.data.business_id,
+    restaurantId: order.data.restaurant_id,
+    actorUserId: input.actorUserId,
+    eventType: input.eventType,
+    details: input.details,
+  });
+}
+
+async function insertOrderEvent(input: {
+  orderId: string;
+  businessId: string;
+  restaurantId: string;
+  actorUserId?: string;
+  eventType: string;
+  details?: Record<string, Json>;
+}) {
+  const client = requireAdminClient();
+  const result = await client.from("order_events").insert({
+    order_id: input.orderId,
+    business_id: input.businessId,
+    restaurant_id: input.restaurantId,
+    actor_user_id: input.actorUserId ?? null,
+    event_type: input.eventType,
+    details: input.details ?? {},
+  });
+  if (result.error) throw repositoryError(result.error.message);
+}
+
+function jsonDetails(value: Json) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value).filter(
+      ([, item]) =>
+        item === null ||
+        typeof item === "string" ||
+        typeof item === "number" ||
+        typeof item === "boolean",
+    ),
+  ) as Record<string, string | number | boolean | null>;
 }
 
 export async function getOrderByTrackingTokenFromSupabase(

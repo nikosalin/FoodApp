@@ -414,6 +414,34 @@ export type Database = {
         >;
         Relationships: [];
       };
+      order_events: {
+        Row: {
+          id: string;
+          order_id: string;
+          business_id: string;
+          restaurant_id: string;
+          actor_user_id: string | null;
+          event_type: string;
+          from_status: Database["public"]["Enums"]["order_status"] | null;
+          to_status: Database["public"]["Enums"]["order_status"] | null;
+          details: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          order_id: string;
+          business_id: string;
+          restaurant_id: string;
+          actor_user_id?: string | null;
+          event_type: string;
+          from_status?: Database["public"]["Enums"]["order_status"] | null;
+          to_status?: Database["public"]["Enums"]["order_status"] | null;
+          details?: Json;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
       audit_events: {
         Row: {
           id: string;
@@ -487,6 +515,16 @@ export type Database = {
           p_limit?: number;
         };
         Returns: Database["public"]["Tables"]["notification_outbox"]["Row"][];
+      };
+      transition_order_status: {
+        Args: {
+          p_order_id: string;
+          p_restaurant_id: string;
+          p_status: Database["public"]["Enums"]["order_status"];
+          p_rejection_reason: string | null;
+          p_actor_user_id: string;
+        };
+        Returns: string;
       };
     };
     Enums: {
