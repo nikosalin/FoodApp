@@ -119,7 +119,10 @@ export async function createOrderInSupabase(
         }
       : null,
     p_customer_notes: null,
-    p_payment_method: databasePaymentMethod(input.paymentMethod),
+    p_payment_method: databasePaymentMethod(
+      input.paymentMethod,
+      input.onlinePaymentProvider,
+    ),
     p_items: canonicalRequest.items as Json,
     p_idempotency_key: options.idempotencyKey,
     p_request_hash: requestHash,
@@ -284,7 +287,10 @@ export async function updateOrderDetailsInSupabase(
           countryCode: input.deliveryAddress.countryCode,
         }
       : null,
-    p_payment_method: databasePaymentMethod(input.paymentMethod),
+    p_payment_method: databasePaymentMethod(
+      input.paymentMethod,
+      input.onlinePaymentProvider,
+    ),
     p_items: input.items.map((item) => ({
       code: item.menuItemId,
       quantity: item.quantity,
@@ -650,7 +656,8 @@ function mapOrder(
 
 function databasePaymentMethod(
   method: OrderInput["paymentMethod"],
-): "card" | "cash_on_site" | "cash_on_delivery" | "external_card" {
+  provider?: OrderInput["onlinePaymentProvider"],
+): "card" | "paypal" | "cash_on_site" | "cash_on_delivery" | "external_card" {
   if (
     method === "cash_on_site" ||
     method === "cash_on_delivery" ||
@@ -658,7 +665,7 @@ function databasePaymentMethod(
   ) {
     return method;
   }
-  return "card";
+  return provider === "paypal" ? "paypal" : "card";
 }
 
 function appPaymentMethod(

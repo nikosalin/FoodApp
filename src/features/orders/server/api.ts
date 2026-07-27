@@ -92,6 +92,7 @@ export function validateOrderInput(
   const preferredChannel = body.preferredChannel;
   const orderType = body.orderType;
   const paymentMethod = body.paymentMethod;
+  const onlinePaymentProvider = body.onlinePaymentProvider;
 
   if (customerName.length < 2 || customerName.length > 100) {
     throw new OrderRepositoryError(
@@ -143,6 +144,14 @@ export function validateOrderInput(
     paymentMethod !== "external_card"
   ) {
     throw new OrderRepositoryError("Invalid payment method", 400);
+  }
+  if (
+    paymentMethod === "online" &&
+    onlinePaymentProvider !== undefined &&
+    onlinePaymentProvider !== "stripe" &&
+    onlinePaymentProvider !== "paypal"
+  ) {
+    throw new OrderRepositoryError("Invalid online payment provider", 400);
   }
   if (orderType === "delivery" && paymentMethod === "cash_on_site") {
     throw new OrderRepositoryError(
@@ -207,6 +216,12 @@ export function validateOrderInput(
     customerPhone: customerPhone || undefined,
     preferredChannel,
     paymentMethod,
+    onlinePaymentProvider:
+      paymentMethod === "online"
+        ? onlinePaymentProvider === "paypal"
+          ? "paypal"
+          : "stripe"
+        : undefined,
     orderType,
     deliveryAddress,
     tableNumber:

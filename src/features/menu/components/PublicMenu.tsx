@@ -23,18 +23,23 @@ import type {
 
 type OrderType = "table" | "takeaway" | "delivery";
 type PaymentMethod = "online" | "cash_on_site" | "cash_on_delivery";
+type OnlinePaymentProvider = "stripe" | "paypal";
 
 export function PublicMenu({
   restaurant,
   items,
   initialOrderType,
   initialTable,
+  initialPaymentNotice,
+  initialTrackingToken,
   stripePublishableKey,
 }: {
   restaurant: Restaurant;
   items: PublicMenuItem[];
   initialOrderType?: OrderType;
   initialTable?: string;
+  initialPaymentNotice?: "authorized" | "cancelled" | "failed";
+  initialTrackingToken?: string;
   stripePublishableKey: string;
 }) {
   const [orderType, setOrderType] = useState<OrderType | undefined>(
@@ -43,6 +48,8 @@ export function PublicMenu({
   const [tableNumber, setTableNumber] = useState(initialTable ?? "");
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethod>("online");
+  const [onlinePaymentProvider, setOnlinePaymentProvider] =
+    useState<OnlinePaymentProvider>("stripe");
   const [cart, setCart] = useState<Record<string, number>>({});
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -51,8 +58,18 @@ export function PublicMenu({
   const [deliveryPostalCode, setDeliveryPostalCode] = useState("");
   const [deliveryCity, setDeliveryCity] = useState("");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [error, setError] = useState(
+    initialPaymentNotice === "failed"
+      ? "Die PayPal-Zahlung konnte nicht bestätigt werden. Bitte versuche es erneut."
+      : "",
+  );
+  const [success, setSuccess] = useState(
+    initialPaymentNotice === "authorized"
+      ? `PayPal hat die Zahlung autorisiert. Die Belastung erfolgt nach Annahme der Bestellung.${initialTrackingToken ? " Du kannst den Status unten verfolgen." : ""}`
+      : initialPaymentNotice === "cancelled"
+        ? "Die PayPal-Zahlung wurde abgebrochen. Dein Warenkorb wurde nicht belastet."
+        : "",
+  );
   const [stripeStep, setStripeStep] = useState<{
     clientSecret: string;
     orderNumber: string;
@@ -184,6 +201,8 @@ export function PublicMenu({
           customerPhone,
           preferredChannel: "email",
           paymentMethod,
+          onlinePaymentProvider:
+            paymentMethod === "online" ? onlinePaymentProvider : undefined,
           deliveryAddress:
             orderType === "delivery"
               ? {
@@ -205,7 +224,11 @@ export function PublicMenu({
           orderNumber: string;
           trackingToken: string;
         };
-        payment?: { clientSecret?: string };
+        payment?: {
+          provider?: OnlinePaymentProvider;
+          clientSecret?: string;
+          checkoutUrl?: string;
+        };
       };
       if (!response.ok || !body.order) {
         throw new Error(
@@ -213,6 +236,14 @@ export function PublicMenu({
         );
       }
       if (paymentMethod === "online") {
+        if (
+          onlinePaymentProvider === "paypal" &&
+          body.payment?.provider === "paypal" &&
+          body.payment.checkoutUrl
+        ) {
+          window.location.assign(body.payment.checkoutUrl);
+          return;
+        }
         if (!stripePublishableKey || !body.payment?.clientSecret) {
           throw new Error("Stripe ist für dieses Restaurant noch nicht konfiguriert.");
         }
@@ -353,6 +384,32 @@ export function PublicMenu({
                     : "Bar im Restaurant"}
                 </button>
               </div>
+              {paymentMethod === "online" && (
+                <div className="mt-3 grid grid-cols-2 gap-2 rounded-2xl bg-stone-100 p-2">
+                  <button
+                    type="button"
+                    onClick={() => setOnlinePaymentProvider("stripe")}
+                    className={`rounded-xl px-3 py-2 text-sm font-bold ${
+                      onlinePaymentProvider === "stripe"
+                        ? "bg-white text-stone-950 shadow-sm"
+                        : "text-stone-500"
+                    }`}
+                  >
+                    Karte
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOnlinePaymentProvider("paypal")}
+                    className={`rounded-xl px-3 py-2 text-sm font-bold ${
+                      onlinePaymentProvider === "paypal"
+                        ? "bg-[#ffc439] text-[#003087] shadow-sm"
+                        : "text-stone-500"
+                    }`}
+                  >
+                    PayPal
+                  </button>
+                </div>
+              )}
               {orderType === "takeaway" &&
                 paymentMethod === "cash_on_site" && (
                   <p className="mt-3 rounded-xl bg-emerald-50 p-3 text-xs font-semibold text-emerald-800">
@@ -500,9 +557,18 @@ export function PublicMenu({
             </p>
           )}
           {success && (
-            <p className="mt-3 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">
-              {success}
-            </p>
+            <div className="mt-3 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">
+              <p>{success}</p>
+              {initialPaymentNotice === "authorized" &&
+                initialTrackingToken && (
+                  <a
+                    className="mt-2 inline-block font-bold underline"
+                    href={`/orders/track/${encodeURIComponent(initialTrackingToken)}`}
+                  >
+                    Bestellstatus öffnen
+                  </a>
+                )}
+            </div>
           )}
         </section>
 

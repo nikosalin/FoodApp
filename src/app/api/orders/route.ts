@@ -124,20 +124,35 @@ export async function POST(request: NextRequest) {
       | Awaited<ReturnType<typeof authorizeOnlinePayment>>["payment"]
       | undefined;
     let clientSecret: string | undefined;
+    let checkoutUrl: string | undefined;
     if (order.paymentMethod === "online") {
       try {
-        const authorization = await authorizeOnlinePayment("stripe", {
+        const provider = input.onlinePaymentProvider ?? "stripe";
+        const trackingToken = order.trackingToken;
+        if (!trackingToken) {
+          throw new PaymentError(
+            "Order tracking token is unavailable",
+            503,
+            "payment_return_unavailable",
+          );
+        }
+        const returnUrl =
+          provider === "paypal"
+            ? `${request.nextUrl.origin}/api/payments/paypal/return?slug=${encodeURIComponent(restaurant.slug)}&trackingToken=${encodeURIComponent(trackingToken)}`
+            : `${request.nextUrl.origin}/menu/${restaurant.slug}?payment=complete`;
+        const authorization = await authorizeOnlinePayment(provider, {
           orderId: order.id,
           businessId: businessIdForRestaurant(restaurantId),
           restaurantId,
           amountMinor: Math.round(order.total * 100),
           currency: "EUR",
           idempotencyKey: `authorize/${idempotencyKey}`,
-          returnUrl: `${request.nextUrl.origin}/menu/${restaurant.slug}?payment=complete`,
-          cancelUrl: `${request.nextUrl.origin}/menu/${restaurant.slug}?payment=cancelled`,
+          returnUrl,
+          cancelUrl: `${request.nextUrl.origin}/menu/${restaurant.slug}?paypal=cancelled`,
         });
         payment = authorization.payment;
         clientSecret = authorization.clientSecret;
+        checkoutUrl = authorization.checkoutUrl;
         if (!isSupabaseConfigured()) {
           attachOrderPayment(restaurantId, order.id, payment);
         }
@@ -153,8 +168,10 @@ export async function POST(request: NextRequest) {
         payment: payment
           ? {
               id: payment.id,
+              provider: payment.provider,
               status: payment.status,
               clientSecret,
+              checkoutUrl,
             }
           : undefined,
       },

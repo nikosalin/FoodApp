@@ -110,6 +110,7 @@ export type OrderInput = {
   customerPhone?: string;
   preferredChannel: "email" | "sms";
   paymentMethod: "online" | "cash_on_site" | "cash_on_delivery" | "external_card";
+  onlinePaymentProvider?: "stripe" | "paypal";
   items: OrderItem[];
   deliveryQuote?: {
     zoneId: string;

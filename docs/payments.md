@@ -1,7 +1,7 @@
 # Payments
 
-Status: Stripe test checkout, manual capture, cancellation, webhooks, full
-refunds, and Supabase payment persistence are connected.
+Status: Stripe and PayPal sandbox checkout, manual capture, cancellation,
+webhooks, Stripe full refunds, and Supabase payment persistence are connected.
 
 ## Initial scope
 
@@ -50,7 +50,9 @@ capture succeeds. A capture failure must remain visible and retryable.
 - `src/features/payments/components/StripePaymentStep.tsx`: Stripe Elements
   confirmation form using Stripe's official React integration.
 - `POST /api/orders`: creates a server-priced order and manual-capture
-  PaymentIntent for online payments.
+  Stripe PaymentIntent or PayPal Order for online payments.
+- `GET /api/payments/paypal/return`: verifies PayPal's returned order ID against
+  the stored payment and finalizes the authorization server-side.
 - Admin acceptance captures the authorization; decline cancels it.
 - `POST /api/admin/restaurants/:restaurantId/orders/:orderId/refund`: creates a
   full refund for a captured online payment.
@@ -147,6 +149,30 @@ Stripe test cards:
 - Declined: `4000 0000 0000 9995`
 
 Use any future expiry and any three-digit CVC in test mode.
+
+## PayPal sandbox setup
+
+Each family business needs its own PayPal Business account in production. For
+local testing, create two sandbox Business accounts and at least one sandbox
+Personal buyer account in the PayPal Developer Dashboard.
+
+1. Create one REST app under each sandbox Business account.
+2. Put each app's client ID and secret in the matching
+   `PAYPAL_BUSINESS_1_*` or `PAYPAL_BUSINESS_2_*` variables from
+   `config/payments.env.example`.
+3. Keep `PAYPAL_MODE=sandbox`.
+4. For each app, register its business-specific webhook URL and subscribe to
+   the PayPal events listed above. Save the returned webhook ID in the matching
+   `PAYPAL_BUSINESS_*_WEBHOOK_ID` variable.
+5. Restart the app, choose PayPal at checkout, and sign in with the sandbox
+   Personal buyer.
+6. Confirm that returning from PayPal marks the payment authorized. Accepting
+   the order must capture it; declining must void it.
+
+Use live credentials only in the production secret manager after both
+businesses have completed PayPal verification. Client secrets and webhook IDs
+must never be committed. PayPal refunds remain a production-checklist item
+until capture IDs are durably recorded and the refund path is sandbox-tested.
 
 ## Supabase model
 

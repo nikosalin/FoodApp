@@ -103,11 +103,17 @@ export const paypalProvider: PaymentProviderAdapter = {
       ? (response.links as Array<Record<string, unknown>>)
       : [];
     const checkoutUrl = links.find((link) => link.rel === "payer-action")?.href;
+    if (typeof checkoutUrl !== "string") {
+      throw new PaymentError(
+        "PayPal returned no approval URL",
+        502,
+        "paypal_approval_url_missing",
+      );
+    }
     return {
       providerPaymentId: String(response.id),
       status: paypalStatus(String(response.status)),
-      checkoutUrl:
-        typeof checkoutUrl === "string" ? checkoutUrl : undefined,
+      checkoutUrl,
     } satisfies PaymentAuthorizationResult;
   },
 
