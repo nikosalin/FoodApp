@@ -32,14 +32,16 @@ export function PublicMenu({
   initialTable,
   initialPaymentNotice,
   initialTrackingToken,
+  paypalEnabled,
   stripePublishableKey,
 }: {
   restaurant: Restaurant;
   items: PublicMenuItem[];
   initialOrderType?: OrderType;
   initialTable?: string;
-  initialPaymentNotice?: "authorized" | "cancelled" | "failed";
+  initialPaymentNotice?: "authorized" | "cancelled" | "failed" | "disabled";
   initialTrackingToken?: string;
+  paypalEnabled: boolean;
   stripePublishableKey: string;
 }) {
   const [orderType, setOrderType] = useState<OrderType | undefined>(
@@ -68,7 +70,9 @@ export function PublicMenu({
       ? `PayPal hat die Zahlung autorisiert. Die Belastung erfolgt nach Annahme der Bestellung.${initialTrackingToken ? " Du kannst den Status unten verfolgen." : ""}`
       : initialPaymentNotice === "cancelled"
         ? "Die PayPal-Zahlung wurde abgebrochen. Dein Warenkorb wurde nicht belastet."
-        : "",
+        : initialPaymentNotice === "disabled"
+          ? "PayPal ist momentan nicht verfügbar. Bitte bezahle mit Karte."
+          : "",
   );
   const [stripeStep, setStripeStep] = useState<{
     clientSecret: string;
@@ -385,7 +389,11 @@ export function PublicMenu({
                 </button>
               </div>
               {paymentMethod === "online" && (
-                <div className="mt-3 grid grid-cols-2 gap-2 rounded-2xl bg-stone-100 p-2">
+                <div
+                  className={`mt-3 grid gap-2 rounded-2xl bg-stone-100 p-2 ${
+                    paypalEnabled ? "grid-cols-2" : "grid-cols-1"
+                  }`}
+                >
                   <button
                     type="button"
                     onClick={() => setOnlinePaymentProvider("stripe")}
@@ -397,17 +405,19 @@ export function PublicMenu({
                   >
                     Karte
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setOnlinePaymentProvider("paypal")}
-                    className={`rounded-xl px-3 py-2 text-sm font-bold ${
-                      onlinePaymentProvider === "paypal"
-                        ? "bg-[#ffc439] text-[#003087] shadow-sm"
-                        : "text-stone-500"
-                    }`}
-                  >
-                    PayPal
-                  </button>
+                  {paypalEnabled && (
+                    <button
+                      type="button"
+                      onClick={() => setOnlinePaymentProvider("paypal")}
+                      className={`rounded-xl px-3 py-2 text-sm font-bold ${
+                        onlinePaymentProvider === "paypal"
+                          ? "bg-[#ffc439] text-[#003087] shadow-sm"
+                          : "text-stone-500"
+                      }`}
+                    >
+                      PayPal
+                    </button>
+                  )}
                 </div>
               )}
               {orderType === "takeaway" &&

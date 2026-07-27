@@ -8,6 +8,7 @@ import {
 } from "@/features/orders/server/supabase-order-repository";
 import { getPaymentForOrder } from "@/features/payments/server/payment-repository";
 import { finalizePayPalAuthorization } from "@/features/payments/server/service";
+import { paypalCheckoutEnabled } from "@/features/payments/server/config";
 import { isSupabaseConfigured } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -18,6 +19,11 @@ export async function GET(request: NextRequest) {
     request.nextUrl.searchParams.get("trackingToken") ?? "";
   const providerOrderId = request.nextUrl.searchParams.get("token") ?? "";
   const menuUrl = new URL(`/menu/${encodeURIComponent(slug)}`, request.url);
+
+  if (!paypalCheckoutEnabled()) {
+    menuUrl.searchParams.set("paypal", "disabled");
+    return NextResponse.redirect(menuUrl);
+  }
 
   if (
     !/^[a-z0-9-]{1,80}$/.test(slug) ||

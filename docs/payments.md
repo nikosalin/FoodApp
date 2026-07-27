@@ -1,7 +1,8 @@
 # Payments
 
-Status: Stripe and PayPal sandbox checkout, manual capture, cancellation,
-webhooks, Stripe full refunds, and Supabase payment persistence are connected.
+Status: Stripe checkout, manual capture, cancellation, webhooks, Stripe full
+refunds, and Supabase payment persistence are connected. PayPal checkout is
+implemented but disabled by default.
 
 ## Initial scope
 
@@ -151,6 +152,10 @@ Stripe test cards:
 Use any future expiry and any three-digit CVC in test mode.
 
 ## PayPal sandbox setup
+
+PayPal is hidden from checkout and rejected by the order API unless
+`PAYPAL_CHECKOUT_ENABLED=true`. Keep the flag false until the sandbox lifecycle
+below passes for both businesses.
 
 Each family business needs its own PayPal Business account in production. For
 local testing, create two sandbox Business accounts and at least one sandbox

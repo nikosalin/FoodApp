@@ -58,7 +58,8 @@ export default async function MenuPage({
       initialPaymentNotice={
         query.paypal === "authorized" ||
         query.paypal === "cancelled" ||
-        query.paypal === "failed"
+        query.paypal === "failed" ||
+        query.paypal === "disabled"
           ? query.paypal
           : undefined
       }
@@ -68,6 +69,7 @@ export default async function MenuPage({
           ? query.trackingToken
           : undefined
       }
+      paypalEnabled={process.env.PAYPAL_CHECKOUT_ENABLED === "true"}
       stripePublishableKey={
         process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ""
       }

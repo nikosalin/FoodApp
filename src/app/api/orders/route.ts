@@ -14,6 +14,7 @@ import {
 } from "@/features/orders/server/order-repository";
 import { authorizeOnlinePayment } from "@/features/payments/server/service";
 import { PaymentError } from "@/features/payments/server/errors";
+import { paypalCheckoutEnabled } from "@/features/payments/server/config";
 import { getRestaurantAvailability } from "@/features/restaurants/server/availability";
 import { isSupabaseConfigured } from "@/lib/supabase/admin";
 import { createOrderInSupabase } from "@/features/orders/server/supabase-order-repository";
@@ -82,6 +83,16 @@ export async function POST(request: NextRequest) {
       );
     }
     const input = validateOrderInput(body, restaurantId);
+    if (
+      input.paymentMethod === "online" &&
+      input.onlinePaymentProvider === "paypal" &&
+      !paypalCheckoutEnabled()
+    ) {
+      return NextResponse.json(
+        { error: "paypal_unavailable", message: "PayPal is currently unavailable" },
+        { status: 409 },
+      );
+    }
     if (input.orderType === "delivery" && input.deliveryAddress) {
       const subtotal = input.items.reduce(
         (sum, item) => sum + item.quantity * item.unitPrice,
