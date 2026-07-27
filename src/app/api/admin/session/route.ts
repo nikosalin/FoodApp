@@ -17,10 +17,48 @@ import { databaseRestaurantId } from "@/features/orders/server/supabase-order-re
 
 export const runtime = "nodejs";
 
-export function GET(request: NextRequest) {
+export async function GET(request: NextRequest) {
   const session = readSession(request);
   if (!session) {
     return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  }
+  if (isSupabaseConfigured()) {
+    const supabase = await getServerSupabase();
+    const admin = getAdminSupabase();
+    if (!supabase || !admin) {
+      return NextResponse.json(
+        { error: "Authentication is unavailable" },
+        { status: 503 },
+      );
+    }
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (userError || !user || user.id !== session.sub) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 },
+      );
+    }
+    const { data: membership, error: membershipError } = await admin
+      .from("business_admins")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+    if (membershipError) {
+      return NextResponse.json(
+        { error: "Unable to verify administrator access" },
+        { status: 503 },
+      );
+    }
+    if (!membership) {
+      return NextResponse.json(
+        { error: "Administrator access required" },
+        { status: 403 },
+      );
+    }
   }
   return NextResponse.json({
     admin: { email: session.email, name: session.name },

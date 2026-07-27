@@ -28,7 +28,7 @@ export async function GET(
   { params }: { params: Promise<{ restaurantId: string }> },
 ) {
   const { restaurantId } = await params;
-  const authorization = authorizeRestaurant(request, restaurantId);
+  const authorization = await authorizeRestaurant(request, restaurantId);
   if (authorization.error) return authorization.error;
   try {
     return NextResponse.json({
@@ -49,7 +49,7 @@ export async function POST(
   { params }: { params: Promise<{ restaurantId: string }> },
 ) {
   const { restaurantId } = await params;
-  const authorization = authorizeRestaurant(request, restaurantId, true);
+  const authorization = await authorizeRestaurant(request, restaurantId, true);
   if (authorization.error) return authorization.error;
   try {
     const input = validateOrderInput(await parseSmallJson(request), restaurantId);

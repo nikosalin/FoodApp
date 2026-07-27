@@ -63,6 +63,8 @@ Typed browser, authenticated-server, and privileged-server clients live in
 `src/lib/supabase`. When Supabase variables are configured, admin login uses
 Supabase Auth and access memberships; guest/admin orders, payments, webhook
 events, tracking, opening hours, and availability overrides use Supabase.
+Protected restaurant routes revalidate both the Supabase user session and
+current business membership on every request.
 Without configuration, the existing prototype repositories remain available as
 a development fallback.
 

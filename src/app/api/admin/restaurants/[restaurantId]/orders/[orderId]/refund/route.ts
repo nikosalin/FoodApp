@@ -19,7 +19,7 @@ export async function POST(
   { params }: { params: Promise<{ restaurantId: string; orderId: string }> },
 ) {
   const { restaurantId, orderId } = await params;
-  const authorization = authorizeRestaurant(request, restaurantId, true);
+  const authorization = await authorizeRestaurant(request, restaurantId, true);
   if (authorization.error) return authorization.error;
 
   try {

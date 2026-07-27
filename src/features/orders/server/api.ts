@@ -6,15 +6,18 @@ import {
   hasValidOrigin,
   readSession,
 } from "./auth";
+import { getAdminSupabase, isSupabaseConfigured } from "@/lib/supabase/admin";
+import { getServerSupabase } from "@/lib/supabase/server";
 import {
   OrderRepositoryError,
   updateOrderStatus,
 } from "./order-repository";
+import { databaseRestaurantId } from "./supabase-order-repository";
 import type { OrderStatus } from "@/features/admin/types";
 import type { OrderInput } from "@/features/admin/types";
 import { getMenuForRestaurantId } from "@/features/menu/data/menu";
 
-export function authorizeRestaurant(
+export async function authorizeRestaurant(
   request: NextRequest,
   restaurantId: string,
   mutation = false,
@@ -28,7 +31,10 @@ export function authorizeRestaurant(
       ),
     };
   }
-  if (!canAccessRestaurant(session, restaurantId)) {
+  const hasAccess = isSupabaseConfigured()
+    ? await hasCurrentSupabaseAccess(session.sub, restaurantId)
+    : canAccessRestaurant(session, restaurantId);
+  if (!hasAccess) {
     return {
       error: NextResponse.json({ error: "Access denied" }, { status: 403 }),
     };
@@ -42,6 +48,34 @@ export function authorizeRestaurant(
     };
   }
   return { session };
+}
+
+async function hasCurrentSupabaseAccess(userId: string, restaurantId: string) {
+  const supabase = await getServerSupabase();
+  const admin = getAdminSupabase();
+  if (!supabase || !admin) return false;
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError || !user || user.id !== userId) return false;
+
+  const { data: restaurant, error: accessError } = await admin
+    .from("restaurants")
+    .select("business_id")
+    .eq("id", databaseRestaurantId(restaurantId))
+    .maybeSingle();
+  if (accessError || !restaurant) return false;
+
+  const { data: membership, error: membershipError } = await admin
+    .from("business_admins")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .eq("business_id", restaurant.business_id)
+    .maybeSingle();
+
+  return !membershipError && Boolean(membership);
 }
 
 export async function parseSmallJson(request: NextRequest) {

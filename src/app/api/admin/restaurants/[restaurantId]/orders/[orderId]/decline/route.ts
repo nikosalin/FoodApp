@@ -26,7 +26,7 @@ export async function POST(
   }: { params: Promise<{ restaurantId: string; orderId: string }> },
 ) {
   const { restaurantId, orderId } = await params;
-  const authorization = authorizeRestaurant(request, restaurantId, true);
+  const authorization = await authorizeRestaurant(request, restaurantId, true);
   if (authorization.error) return authorization.error;
   try {
     const body = await parseSmallJson(request);

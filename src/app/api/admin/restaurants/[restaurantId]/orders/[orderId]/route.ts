@@ -41,7 +41,7 @@ export async function PATCH(
   }: { params: Promise<{ restaurantId: string; orderId: string }> },
 ) {
   const { restaurantId, orderId } = await params;
-  const authorization = authorizeRestaurant(request, restaurantId, true);
+  const authorization = await authorizeRestaurant(request, restaurantId, true);
   if (authorization.error) return authorization.error;
 
   try {
@@ -103,7 +103,7 @@ export async function PUT(
   }: { params: Promise<{ restaurantId: string; orderId: string }> },
 ) {
   const { restaurantId, orderId } = await params;
-  const authorization = authorizeRestaurant(request, restaurantId, true);
+  const authorization = await authorizeRestaurant(request, restaurantId, true);
   if (authorization.error) return authorization.error;
   try {
     const input = validateOrderInput(
@@ -176,7 +176,7 @@ export async function DELETE(
   }: { params: Promise<{ restaurantId: string; orderId: string }> },
 ) {
   const { restaurantId, orderId } = await params;
-  const authorization = authorizeRestaurant(request, restaurantId, true);
+  const authorization = await authorizeRestaurant(request, restaurantId, true);
   if (authorization.error) return authorization.error;
   try {
     if (isSupabaseConfigured()) {

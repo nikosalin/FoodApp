@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ restaurantId: string; orderId: string }> },
 ) {
   const { restaurantId, orderId } = await params;
-  const authorization = authorizeRestaurant(request, restaurantId);
+  const authorization = await authorizeRestaurant(request, restaurantId);
   if (authorization.error) return authorization.error;
   try {
     if (isSupabaseConfigured()) {

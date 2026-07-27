@@ -11,7 +11,7 @@ export async function GET(
   { params }: { params: Promise<{ restaurantId: string }> },
 ) {
   const { restaurantId } = await params;
-  const authorization = authorizeRestaurant(request, restaurantId);
+  const authorization = await authorizeRestaurant(request, restaurantId);
   if (authorization.error) return authorization.error;
 
   const encoder = new TextEncoder();

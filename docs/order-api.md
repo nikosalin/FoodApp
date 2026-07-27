@@ -25,6 +25,9 @@ When Supabase is configured, login uses Supabase Auth and restaurant access is
 derived from `business_admins`. The development fallback credentials work only
 without Supabase configuration. Successful login sets a signed, HTTP-only,
 SameSite=Strict application session cookie in addition to the Supabase session.
+Protected restaurant requests revalidate the Supabase user and current
+`business_admins` membership, so signing out or revoking membership removes
+access without waiting for the application session to expire.
 Configure `SESSION_SECRET` in every deployed environment. Production startup
 rejects the development fallback secret.
 
