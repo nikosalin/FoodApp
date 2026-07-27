@@ -1,5 +1,8 @@
 {
   "navbar": {
     "Logo": "The Greeks"
+  },
+  "header": {
+    "title": "Choose your favorite"
   }
 }
