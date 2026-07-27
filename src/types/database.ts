@@ -91,6 +91,8 @@ export type Database = {
           city: string;
           country_code: "DE";
           timezone: "Europe/Berlin";
+          latitude: number | null;
+          longitude: number | null;
           accepts_table: boolean;
           accepts_takeaway: boolean;
           accepts_delivery: boolean;
@@ -114,6 +116,8 @@ export type Database = {
           city: string;
           country_code?: "DE";
           timezone?: "Europe/Berlin";
+          latitude?: number | null;
+          longitude?: number | null;
           accepts_table?: boolean;
           accepts_takeaway?: boolean;
           accepts_delivery?: boolean;
@@ -248,6 +252,10 @@ export type Database = {
           rejection_reason: string | null;
           created_by: string | null;
           deleted_at: string | null;
+          delivery_distance_meters: number | null;
+          delivery_fee_minor: number;
+          delivery_zone_id: string | null;
+          estimated_fulfillment_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -275,6 +283,10 @@ export type Database = {
           rejection_reason?: string | null;
           created_by?: string | null;
           deleted_at?: string | null;
+          delivery_distance_meters?: number | null;
+          delivery_fee_minor?: number;
+          delivery_zone_id?: string | null;
+          estimated_fulfillment_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -304,6 +316,32 @@ export type Database = {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["order_items"]["Insert"]>;
+        Relationships: [];
+      };
+      restaurant_delivery_zones: {
+        Row: {
+          id: string;
+          restaurant_id: string;
+          max_distance_meters: number;
+          minimum_order_minor: number;
+          delivery_fee_minor: number;
+          active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          restaurant_id: string;
+          max_distance_meters: number;
+          minimum_order_minor: number;
+          delivery_fee_minor?: number;
+          active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["restaurant_delivery_zones"]["Insert"]
+        >;
         Relationships: [];
       };
       payments: {
@@ -525,6 +563,23 @@ export type Database = {
           p_actor_user_id: string;
         };
         Returns: string;
+      };
+      apply_delivery_quote: {
+        Args: {
+          p_order_id: string;
+          p_restaurant_id: string;
+          p_delivery_zone_id: string;
+          p_distance_meters: number;
+          p_delivery_fee_minor: number;
+        };
+        Returns: string;
+      };
+      replace_delivery_zones: {
+        Args: {
+          p_restaurant_id: string;
+          p_zones: Json;
+        };
+        Returns: undefined;
       };
     };
     Enums: {

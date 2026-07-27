@@ -23,6 +23,10 @@ import {
   rememberIdempotentOrder,
 } from "@/features/orders/server/guest-orders";
 import { seedAdminState } from "@/features/admin/data/seed";
+import {
+  calculateDeliveryQuote,
+  DeliveryQuoteError,
+} from "@/features/restaurants/server/delivery";
 
 export const runtime = "nodejs";
 
@@ -78,6 +82,29 @@ export async function POST(request: NextRequest) {
       );
     }
     const input = validateOrderInput(body, restaurantId);
+    if (input.orderType === "delivery" && input.deliveryAddress) {
+      const subtotal = input.items.reduce(
+        (sum, item) => sum + item.quantity * item.unitPrice,
+        0,
+      );
+      const quote = await calculateDeliveryQuote(
+        restaurantId,
+        input.deliveryAddress,
+        subtotal,
+      );
+      if (!quote.minimumMet) {
+        throw new DeliveryQuoteError(
+          `Minimum order for this address is €${quote.minimumOrder.toFixed(2)}`,
+          422,
+          "minimum_order_not_met",
+        );
+      }
+      input.deliveryQuote = {
+        zoneId: quote.zoneId,
+        distanceMeters: quote.distanceMeters,
+        deliveryFee: quote.deliveryFee,
+      };
+    }
     if (
       input.paymentMethod === "cash_on_delivery" &&
       !availability.cashOnDeliveryEnabled
@@ -139,6 +166,12 @@ export async function POST(request: NextRequest) {
     }
     if (error instanceof PaymentError) {
       return NextResponse.json({ error: error.code }, { status: error.status });
+    }
+    if (error instanceof DeliveryQuoteError) {
+      return NextResponse.json(
+        { error: error.code, message: error.message },
+        { status: error.status },
+      );
     }
     return NextResponse.json({ error: "Unexpected server error" }, { status: 500 });
   }

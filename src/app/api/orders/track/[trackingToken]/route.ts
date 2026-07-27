@@ -25,6 +25,8 @@ export async function GET(
       orderNumber: order.orderNumber,
       restaurantId: order.restaurantId,
       status: order.status,
+      orderType: order.orderType,
+      estimatedFulfillmentAt: order.estimatedFulfillmentAt,
       items: order.items,
       total: order.total,
       createdAt: order.createdAt,

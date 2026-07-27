@@ -16,6 +16,9 @@ customer checkout flow still needs to be connected.
 - Public restaurant menu at `/menu/[slug]`.
 - Restaurant-specific categories, item cards, prices, and cart.
 - Dine-in/table, takeaway, and home-delivery fulfilment.
+- Restaurant-specific delivery-radius zones with minimum basket and delivery
+  fee rules.
+- Server-side German address geocoding and distance enforcement.
 - Guest checkout with an email address for confirmation and secure order
   tracking.
 - Cash on site for dine-in and pickup orders.
@@ -29,6 +32,9 @@ customer checkout flow still needs to be connected.
   the menu URL.
 - Restaurant opening state is shown before checkout, and closed restaurants
   reject new orders at the API boundary.
+
+Delivery-zone configuration, geocoding, enforcement, and fulfilment estimates
+are documented in [docs/delivery.md](docs/delivery.md).
 
 ## Admin panel
 
@@ -45,6 +51,8 @@ customer checkout flow still needs to be connected.
   cancelled.
 - Accept or decline incoming orders and progress accepted orders through
   preparation.
+- Required ready/arrival estimate when accepting, visible to customers on the
+  tracking page.
 - Create orders directly from compact menu-item cards; server menu prices are
   used automatically.
 - Edit or delete eligible manual orders without using the customer menu.
@@ -55,6 +63,7 @@ customer checkout flow still needs to be connected.
 - Per-restaurant weekly opening hours, manual open/close override, and early
   closure until the next opening period.
 - Per-restaurant cash-on-delivery switch.
+- Editable per-restaurant delivery radii, minimums, fees, and shop geocoding.
 - Restaurant QR-code generation and print layout.
 - Audit records for sensitive order and payment changes.
 
@@ -172,7 +181,8 @@ cp config/supabase.env.example .env.local
 Replace the placeholder Supabase values with the local values printed by
 `npm run supabase:status`. Add the variables from
 `config/payments.env.example` when testing Stripe or PayPal and
-`config/email.env.example` when testing email. Never commit real secret keys.
+`config/email.env.example` when testing email. Add
+`config/delivery.env.example` for address lookup. Never commit real secret keys.
 
 Then start the app:
 

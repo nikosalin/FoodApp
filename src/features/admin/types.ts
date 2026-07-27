@@ -62,6 +62,9 @@ export type RestaurantOrder = {
   orderNumber: string;
   orderType: "table" | "takeaway" | "delivery";
   deliveryAddress?: DeliveryAddress;
+  deliveryDistanceMeters?: number;
+  deliveryFee?: number;
+  estimatedFulfillmentAt?: string;
   tableNumber?: string;
   customerName: string;
   customerEmail?: string;
@@ -108,6 +111,11 @@ export type OrderInput = {
   preferredChannel: "email" | "sms";
   paymentMethod: "online" | "cash_on_site" | "cash_on_delivery" | "external_card";
   items: OrderItem[];
+  deliveryQuote?: {
+    zoneId: string;
+    distanceMeters: number;
+    deliveryFee: number;
+  };
 };
 
 export type AdminState = {

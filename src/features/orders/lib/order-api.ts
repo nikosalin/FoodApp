@@ -115,10 +115,14 @@ export async function deleteAdminOrder(
   }
 }
 
-export async function acceptOrder(restaurantId: string, orderId: string) {
+export async function acceptOrder(
+  restaurantId: string,
+  orderId: string,
+  estimateMinutes: number,
+) {
   const result = await apiRequest<{ order: RestaurantOrder }>(
     `${orderBase(restaurantId, orderId)}/accept`,
-    { method: "POST" },
+    { method: "POST", body: JSON.stringify({ estimateMinutes }) },
   );
   return result.order;
 }

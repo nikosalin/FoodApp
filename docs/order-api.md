@@ -60,6 +60,16 @@ Generic status update body:
 { "status": "preparing" }
 ```
 
+Accepting requires a customer-facing fulfilment estimate:
+
+```json
+{ "estimateMinutes": 45 }
+```
+
+The value must be an integer from 10 to 180. It is converted to an absolute
+timestamp, stored on the order, and written to immutable history with the
+administrator identity.
+
 ## Allowed transitions
 
 ```text
@@ -98,6 +108,17 @@ order/customer search plus status, payment-method, and closed-date filters.
 - An `Idempotency-Key` header between 16 and 100 characters
 - Either a valid email address or phone number
 - A matching preferred notification channel
+
+Delivery customers first request an informational quote through:
+
+```text
+POST /api/restaurants/:restaurantId/delivery-quote
+```
+
+The quote returns radius, minimum basket, and delivery fee. Final order
+creation independently recalculates the menu subtotal, geocodes the address,
+enforces the restaurant zone, and applies the fee. See
+[delivery.md](delivery.md).
 - One or more menu item IDs and validated quantities
 - A payment method: `online`, `cash_on_site`, `cash_on_delivery`, or
   `external_card`

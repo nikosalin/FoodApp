@@ -6,6 +6,8 @@ import type { OrderItem, OrderStatus } from "@/features/admin/types";
 type TrackedOrder = {
   orderNumber: string;
   status: OrderStatus;
+  orderType: "table" | "takeaway" | "delivery";
+  estimatedFulfillmentAt?: string;
   items: OrderItem[];
   total: number;
   rejectionReason?: string;
@@ -77,6 +79,16 @@ export function OrderTracking({ trackingToken }: { trackingToken: string }) {
       <p className="mt-2 text-sm text-stone-500">
         Diese Seite wird automatisch aktualisiert.
       </p>
+      {order.estimatedFulfillmentAt && (
+        <p className="mt-4 rounded-xl bg-amber-50 p-4 font-bold text-amber-900">
+          Voraussichtliche{" "}
+          {order.orderType === "delivery" ? "Lieferung" : "Abholzeit"}:{" "}
+          {new Intl.DateTimeFormat("de-DE", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }).format(new Date(order.estimatedFulfillmentAt))}
+        </p>
+      )}
       <ul className="mt-6 divide-y divide-stone-200 rounded-xl border border-stone-200 px-4">
         {order.items.map((item, index) => (
           <li

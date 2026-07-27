@@ -21,6 +21,10 @@ import {
 } from "@/features/orders/server/supabase-order-repository";
 import { getPaymentForOrder } from "@/features/payments/server/payment-repository";
 import { getRestaurantAvailability } from "@/features/restaurants/server/availability";
+import {
+  calculateDeliveryQuote,
+  DeliveryQuoteError,
+} from "@/features/restaurants/server/delivery";
 
 const allowedStatuses: OrderStatus[] = [
   "accepted",
@@ -106,6 +110,29 @@ export async function PUT(
       await parseSmallJson(request),
       restaurantId,
     );
+    if (input.orderType === "delivery" && input.deliveryAddress) {
+      const subtotal = input.items.reduce(
+        (sum, item) => sum + item.quantity * item.unitPrice,
+        0,
+      );
+      const quote = await calculateDeliveryQuote(
+        restaurantId,
+        input.deliveryAddress,
+        subtotal,
+      );
+      if (!quote.minimumMet) {
+        throw new DeliveryQuoteError(
+          `Minimum order for this address is €${quote.minimumOrder.toFixed(2)}`,
+          422,
+          "minimum_order_not_met",
+        );
+      }
+      input.deliveryQuote = {
+        zoneId: quote.zoneId,
+        distanceMeters: quote.distanceMeters,
+        deliveryFee: quote.deliveryFee,
+      };
+    }
     if (input.paymentMethod === "cash_on_delivery") {
       const availability = await getRestaurantAvailability(restaurantId);
       if (!availability.cashOnDeliveryEnabled) {
@@ -131,6 +158,12 @@ export async function PUT(
   } catch (error) {
     if (error instanceof OrderRepositoryError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    if (error instanceof DeliveryQuoteError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status },
+      );
     }
     return NextResponse.json({ error: "Unexpected server error" }, { status: 500 });
   }

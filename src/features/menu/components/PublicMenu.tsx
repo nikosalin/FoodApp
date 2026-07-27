@@ -16,7 +16,10 @@ import { useEffect } from "react";
 import type { Restaurant } from "@/features/admin/types";
 import { StripePaymentStep } from "@/features/payments/components/StripePaymentStep";
 import type { PublicMenuItem } from "../data/menu";
-import type { RestaurantAvailability } from "@/features/restaurants/types";
+import type {
+  DeliveryQuote,
+  RestaurantAvailability,
+} from "@/features/restaurants/types";
 
 type OrderType = "table" | "takeaway" | "delivery";
 type PaymentMethod = "online" | "cash_on_site" | "cash_on_delivery";
@@ -56,6 +59,9 @@ export function PublicMenu({
     trackingToken: string;
   }>();
   const [availability, setAvailability] = useState<RestaurantAvailability>();
+  const [deliveryQuote, setDeliveryQuote] = useState<DeliveryQuote>();
+  const [quoteFingerprint, setQuoteFingerprint] = useState("");
+  const [quoteBusy, setQuoteBusy] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -94,6 +100,17 @@ export function PublicMenu({
     [cart, items],
   );
   const count = Object.values(cart).reduce((sum, quantity) => sum + quantity, 0);
+  const deliveryFingerprint = JSON.stringify([
+    deliveryStreet.trim(),
+    deliveryPostalCode,
+    deliveryCity.trim(),
+    total,
+  ]);
+  const activeDeliveryQuote =
+    quoteFingerprint === deliveryFingerprint ? deliveryQuote : undefined;
+  const checkoutTotal =
+    total +
+    (orderType === "delivery" ? activeDeliveryQuote?.deliveryFee ?? 0 : 0);
 
   const changeQuantity = (itemId: string, amount: number) => {
     setCart((current) => {
@@ -101,6 +118,50 @@ export function PublicMenu({
       return { ...current, [itemId]: quantity };
     });
   };
+
+  async function requestDeliveryQuote() {
+    setQuoteBusy(true);
+    setError("");
+    try {
+      const response = await fetch(
+        `/api/restaurants/${encodeURIComponent(
+          restaurant.id,
+        )}/delivery-quote`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            address: {
+              street: deliveryStreet,
+              postalCode: deliveryPostalCode,
+              city: deliveryCity,
+              countryCode: "DE",
+            },
+            subtotal: total,
+          }),
+        },
+      );
+      const body = (await response.json()) as {
+        quote?: DeliveryQuote;
+        error?: string;
+      };
+      if (!response.ok || !body.quote) {
+        throw new Error(body.error ?? "Lieferadresse konnte nicht geprüft werden.");
+      }
+      setDeliveryQuote(body.quote);
+      setQuoteFingerprint(deliveryFingerprint);
+    } catch (reason) {
+      setDeliveryQuote(undefined);
+      setQuoteFingerprint("");
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "Lieferadresse konnte nicht geprüft werden.",
+      );
+    } finally {
+      setQuoteBusy(false);
+    }
+  }
 
   async function submitOrder() {
     if (!orderType || busy) return;
@@ -388,6 +449,49 @@ export function PublicMenu({
                   />
                 </label>
               </div>
+              <button
+                type="button"
+                disabled={
+                  quoteBusy ||
+                  deliveryStreet.trim().length < 3 ||
+                  !/^[0-9]{5}$/.test(deliveryPostalCode) ||
+                  deliveryCity.trim().length < 2
+                }
+                onClick={() => void requestDeliveryQuote()}
+                className="mt-3 h-10 rounded-xl border border-stone-300 px-4 text-sm font-bold disabled:opacity-40"
+              >
+                {quoteBusy ? "Adresse wird geprüft…" : "Lieferung prüfen"}
+              </button>
+              {activeDeliveryQuote && (
+                <div
+                  className={`mt-3 rounded-xl p-3 text-sm ${
+                    activeDeliveryQuote.minimumMet
+                      ? "bg-emerald-50 text-emerald-900"
+                      : "bg-amber-50 text-amber-900"
+                  }`}
+                >
+                  <p className="font-bold">
+                    Entfernung:{" "}
+                    {(activeDeliveryQuote.distanceMeters / 1000).toFixed(1)} km
+                  </p>
+                  <p className="mt-1">
+                    Mindestbestellwert:{" "}
+                    {formatCurrency(activeDeliveryQuote.minimumOrder)} ·
+                    Liefergebühr:{" "}
+                    {formatCurrency(activeDeliveryQuote.deliveryFee)}
+                  </p>
+                  {!activeDeliveryQuote.minimumMet && (
+                    <p className="mt-1 font-semibold">
+                      Es fehlen{" "}
+                      {formatCurrency(
+                        activeDeliveryQuote.minimumOrder -
+                          activeDeliveryQuote.subtotal,
+                      )}
+                      .
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           )}
           {error && (
@@ -490,7 +594,8 @@ export function PublicMenu({
                 (orderType === "delivery" &&
                   (deliveryStreet.trim().length < 3 ||
                     !/^[0-9]{5}$/.test(deliveryPostalCode) ||
-                    deliveryCity.trim().length < 2)) ||
+                    deliveryCity.trim().length < 2 ||
+                    !activeDeliveryQuote?.minimumMet)) ||
                 (orderType === "table" && tableNumber.trim().length === 0)
               }
               onClick={submitOrder}
@@ -505,7 +610,7 @@ export function PublicMenu({
                     ? "Wird erstellt…"
                     : `${count} Artikel`}
               </span>
-              <span>{formatCurrency(total)}</span>
+              <span>{formatCurrency(checkoutTotal)}</span>
             </button>
           </div>
         </div>

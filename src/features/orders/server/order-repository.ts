@@ -82,6 +82,8 @@ export function createOrder(
     deliveryAddress: input.deliveryAddress
       ? structuredClone(input.deliveryAddress)
       : undefined,
+    deliveryDistanceMeters: input.deliveryQuote?.distanceMeters,
+    deliveryFee: input.deliveryQuote?.deliveryFee,
     tableNumber: input.tableNumber?.trim() || undefined,
     customerName: input.customerName.trim(),
     customerEmail: input.customerEmail?.trim().toLowerCase() || undefined,
@@ -92,10 +94,11 @@ export function createOrder(
     trackingToken: crypto.randomUUID().replaceAll("-", ""),
     notificationStatus: "pending",
     items: structuredClone(input.items),
-    total: input.items.reduce(
-      (sum, item) => sum + item.quantity * item.unitPrice,
-      0,
-    ),
+    total:
+      input.items.reduce(
+        (sum, item) => sum + item.quantity * item.unitPrice,
+        0,
+      ) + (input.deliveryQuote?.deliveryFee ?? 0),
     status: "pending",
     createdAt: now,
     updatedAt: now,
@@ -158,6 +161,8 @@ export function updateOrderDetails(
     deliveryAddress: input.deliveryAddress
       ? structuredClone(input.deliveryAddress)
       : undefined,
+    deliveryDistanceMeters: input.deliveryQuote?.distanceMeters,
+    deliveryFee: input.deliveryQuote?.deliveryFee,
     tableNumber: input.tableNumber?.trim() || undefined,
     customerName: input.customerName.trim(),
     customerEmail: input.customerEmail?.trim().toLowerCase() || undefined,
@@ -165,10 +170,11 @@ export function updateOrderDetails(
     preferredChannel: input.preferredChannel,
     paymentMethod: input.paymentMethod,
     items: structuredClone(input.items),
-    total: input.items.reduce(
-      (sum, item) => sum + item.quantity * item.unitPrice,
-      0,
-    ),
+    total:
+      input.items.reduce(
+        (sum, item) => sum + item.quantity * item.unitPrice,
+        0,
+      ) + (input.deliveryQuote?.deliveryFee ?? 0),
     updatedAt: new Date().toISOString(),
   };
   store.orders[index] = updated;
@@ -192,6 +198,7 @@ export function updateOrderStatus(input: {
   orderId: string;
   status: OrderStatus;
   rejectionReason?: string;
+  estimatedFulfillmentAt?: string;
 }) {
   const store = memory();
   const index = store.orders.findIndex(
@@ -230,6 +237,8 @@ export function updateOrderStatus(input: {
       ? now
       : current.closedAt,
     updatedAt: now,
+    estimatedFulfillmentAt:
+      input.estimatedFulfillmentAt ?? current.estimatedFulfillmentAt,
   };
   store.orders[index] = updated;
   const notificationEvents: Partial<Record<OrderStatus, NotificationEvent>> = {

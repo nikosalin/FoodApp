@@ -215,7 +215,7 @@ export function validateOrderInput(
   };
 }
 
-function validateDeliveryAddress(value: unknown) {
+export function validateDeliveryAddress(value: unknown) {
   if (!value || typeof value !== "object") {
     throw new OrderRepositoryError("A delivery address is required", 400);
   }

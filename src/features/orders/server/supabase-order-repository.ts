@@ -136,6 +136,29 @@ export async function createOrderInSupabase(
 
   const response = data as Record<string, Json | undefined>;
   const orderId = typeof response.id === "string" ? response.id : "";
+  if (input.deliveryQuote) {
+    const delivery = await client.rpc("apply_delivery_quote", {
+      p_order_id: orderId,
+      p_restaurant_id: databaseId,
+      p_delivery_zone_id: input.deliveryQuote.zoneId,
+      p_distance_meters: input.deliveryQuote.distanceMeters,
+      p_delivery_fee_minor: Math.round(input.deliveryQuote.deliveryFee * 100),
+    });
+    if (delivery.error) {
+      throw repositoryError(delivery.error.message);
+    }
+    await recordOrderEvent({
+      restaurantId: input.restaurantId,
+      orderId,
+      actorUserId: options.createdBy,
+      eventType: "delivery.quoted",
+      details: {
+        distanceMeters: input.deliveryQuote.distanceMeters,
+        deliveryFeeMinor: Math.round(input.deliveryQuote.deliveryFee * 100),
+        zoneId: input.deliveryQuote.zoneId,
+      },
+    });
+  }
   const order = await getOrderById(client, orderId);
   if (!order) throw repositoryError("Created order could not be loaded");
   return {
@@ -271,6 +294,27 @@ export async function updateOrderDetailsInSupabase(
   if (result.error) {
     const status = result.error.message.includes("cannot be edited") ? 409 : 400;
     throw new OrderRepositoryError(result.error.message, status);
+  }
+  if (input.deliveryQuote) {
+    const delivery = await client.rpc("apply_delivery_quote", {
+      p_order_id: orderId,
+      p_restaurant_id: databaseRestaurantId(restaurantId),
+      p_delivery_zone_id: input.deliveryQuote.zoneId,
+      p_distance_meters: input.deliveryQuote.distanceMeters,
+      p_delivery_fee_minor: Math.round(input.deliveryQuote.deliveryFee * 100),
+    });
+    if (delivery.error) throw repositoryError(delivery.error.message);
+    await recordOrderEvent({
+      restaurantId,
+      orderId,
+      actorUserId,
+      eventType: "delivery.quoted",
+      details: {
+        distanceMeters: input.deliveryQuote.distanceMeters,
+        deliveryFeeMinor: Math.round(input.deliveryQuote.deliveryFee * 100),
+        zoneId: input.deliveryQuote.zoneId,
+      },
+    });
   }
   const updated = await getOrderFromSupabase(restaurantId, orderId);
   const databaseOrder = await client
@@ -452,6 +496,44 @@ export async function recordOrderEvent(input: {
   });
 }
 
+export async function setOrderFulfillmentEstimate(input: {
+  restaurantId: string;
+  orderId: string;
+  actorUserId: string;
+  estimatedAt: string;
+  estimateMinutes: number;
+}) {
+  const client = requireAdminClient();
+  const databaseId = databaseRestaurantId(input.restaurantId);
+  const order = await client
+    .from("orders")
+    .select("business_id, restaurant_id")
+    .eq("id", input.orderId)
+    .eq("restaurant_id", databaseId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (order.error || !order.data) {
+    throw repositoryError(order.error?.message ?? "Order not found");
+  }
+  const update = await client
+    .from("orders")
+    .update({ estimated_fulfillment_at: input.estimatedAt })
+    .eq("id", input.orderId)
+    .eq("restaurant_id", databaseId);
+  if (update.error) throw repositoryError(update.error.message);
+  await insertOrderEvent({
+    orderId: input.orderId,
+    businessId: order.data.business_id,
+    restaurantId: order.data.restaurant_id,
+    actorUserId: input.actorUserId,
+    eventType: "order.fulfillment_estimated",
+    details: {
+      estimatedAt: input.estimatedAt,
+      estimateMinutes: input.estimateMinutes,
+    },
+  });
+}
+
 async function insertOrderEvent(input: {
   orderId: string;
   businessId: string;
@@ -540,6 +622,9 @@ function mapOrder(
     orderNumber: order.order_number,
     orderType: order.order_type,
     deliveryAddress: parseDeliveryAddress(order.delivery_address),
+    deliveryDistanceMeters: order.delivery_distance_meters ?? undefined,
+    deliveryFee: order.delivery_fee_minor / 100,
+    estimatedFulfillmentAt: order.estimated_fulfillment_at ?? undefined,
     tableNumber: order.table_number ?? undefined,
     customerName: order.customer_name,
     customerEmail: order.customer_email ?? undefined,

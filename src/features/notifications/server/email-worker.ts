@@ -84,7 +84,7 @@ async function buildOrderConfirmation(job: NotificationJob) {
   }
   const orderResult = await client
     .from("orders")
-    .select("order_number, restaurant_id, total_minor")
+    .select("order_number, restaurant_id, total_minor, delivery_fee_minor")
     .eq("id", job.order_id)
     .maybeSingle();
   if (orderResult.error || !orderResult.data) {
@@ -144,6 +144,9 @@ async function buildOrderConfirmation(job: NotificationJob) {
       `Bestellnummer: ${orderNumber}`,
       "",
       ...itemLines,
+      ...(orderResult.data.delivery_fee_minor > 0
+        ? [`Liefergebühr: ${currency(orderResult.data.delivery_fee_minor)}`]
+        : []),
       "",
       `Gesamt: ${currency(orderResult.data.total_minor)}`,
       `Status ansehen: ${trackingUrl}`,
@@ -154,6 +157,7 @@ async function buildOrderConfirmation(job: NotificationJob) {
     )}</strong>.</p>
 <p>Bestellnummer: <strong>${escapeHtml(orderNumber)}</strong></p>
 <ul>${escapedItems}</ul>
+${orderResult.data.delivery_fee_minor > 0 ? `<p>Liefergebühr: ${currency(orderResult.data.delivery_fee_minor)}</p>` : ""}
 <p>Gesamt: <strong>${currency(orderResult.data.total_minor)}</strong></p>
 <p><a href="${escapeHtml(trackingUrl)}">Bestellstatus ansehen</a></p>`,
   };

@@ -61,6 +61,7 @@ import {
 import { RestaurantQrCard } from "./RestaurantQrCard";
 import { getPublicMenu } from "@/features/menu/data/menu";
 import { RestaurantAvailabilityCard } from "@/features/restaurants/components/RestaurantAvailabilityCard";
+import { RestaurantDeliverySettingsCard } from "@/features/restaurants/components/RestaurantDeliverySettingsCard";
 
 const closedStatuses: OrderStatus[] = ["completed", "cancelled", "rejected"];
 
@@ -99,6 +100,7 @@ export function RestaurantOrderOverview({
   const [declineTarget, setDeclineTarget] = useState<RestaurantOrder | null>(
     null,
   );
+  const [acceptTarget, setAcceptTarget] = useState<RestaurantOrder | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<RestaurantOrder | null>(null);
 
@@ -338,6 +340,8 @@ export function RestaurantOrderOverview({
 
       <RestaurantAvailabilityCard restaurantId={restaurant.id} />
 
+      <RestaurantDeliverySettingsCard restaurantId={restaurant.id} />
+
       <RestaurantQrCard restaurant={restaurant} />
 
       {error && (
@@ -502,11 +506,7 @@ export function RestaurantOrderOverview({
                 key={order.id}
                 order={order}
                 busy={busyOrderId === order.id}
-                onAccept={() =>
-                  runOrderMutation(order.id, () =>
-                    acceptOrder(restaurantId, order.id),
-                  )
-                }
+                onAccept={() => setAcceptTarget(order)}
                 onDecline={() => setDeclineTarget(order)}
                 onStatus={(status) =>
                   runOrderMutation(order.id, () =>
@@ -574,6 +574,19 @@ export function RestaurantOrderOverview({
           }}
         />
       )}
+      {acceptTarget && (
+        <AcceptOrderModal
+          order={acceptTarget}
+          busy={busyOrderId === acceptTarget.id}
+          onClose={() => setAcceptTarget(null)}
+          onAccept={async (estimateMinutes) => {
+            await runOrderMutation(acceptTarget.id, () =>
+              acceptOrder(restaurantId, acceptTarget.id, estimateMinutes),
+            );
+            setAcceptTarget(null);
+          }}
+        />
+      )}
       {editorOpen && (
         <OrderEditorModal
           restaurant={restaurant}
@@ -613,6 +626,78 @@ export function RestaurantOrderOverview({
         />
       )}
     </div>
+  );
+}
+
+function AcceptOrderModal({
+  order,
+  busy,
+  onClose,
+  onAccept,
+}: {
+  order: RestaurantOrder;
+  busy: boolean;
+  onClose: () => void;
+  onAccept: (estimateMinutes: number) => Promise<void>;
+}) {
+  const [estimateMinutes, setEstimateMinutes] = useState(
+    order.orderType === "delivery" ? 45 : 30,
+  );
+  const [estimateBaseTime] = useState(() => Date.now());
+
+  return (
+    <AdminModal title={`Accept #${order.orderNumber}`} onClose={onClose}>
+      <p className="text-sm text-stone-600">
+        Give the customer a realistic{" "}
+        {order.orderType === "delivery" ? "arrival" : "ready"} estimate.
+      </p>
+      <label className="mt-5 block text-sm font-bold">
+        Estimated minutes
+        <input
+          type="number"
+          min={10}
+          max={180}
+          step={5}
+          value={estimateMinutes}
+          onChange={(event) => setEstimateMinutes(Number(event.target.value))}
+          className={`${fieldClassName} mt-2`}
+        />
+      </label>
+      <p className="mt-2 text-xs text-stone-500">
+        Estimated{" "}
+        {order.orderType === "delivery" ? "arrival" : "ready time"}:{" "}
+        {new Date(
+          estimateBaseTime + estimateMinutes * 60_000,
+        ).toLocaleTimeString("de-DE", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </p>
+      <div className="mt-6 flex justify-end gap-2">
+        <button
+          type="button"
+          className={secondaryButtonClassName}
+          onClick={onClose}
+          disabled={busy}
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          className={primaryButtonClassName}
+          disabled={
+            busy ||
+            !Number.isInteger(estimateMinutes) ||
+            estimateMinutes < 10 ||
+            estimateMinutes > 180
+          }
+          onClick={() => void onAccept(estimateMinutes)}
+        >
+          <CheckCircle2 className="size-4" />
+          Accept with estimate
+        </button>
+      </div>
+    </AdminModal>
   );
 }
 
@@ -733,10 +818,12 @@ function historyEventLabel(event: OrderHistoryEvent) {
     "order.edited": "Order edited",
     "order.deleted": "Order deleted",
     "order.restored": "Order restored",
+    "order.fulfillment_estimated": "Fulfilment time estimated",
     "payment.captured": "Card payment captured",
     "payment.cancelled": "Payment authorization cancelled",
     "payment.refunded": "Payment refunded",
     "payment.cash_collected": "Cash collected",
+    "delivery.quoted": "Delivery radius and fee calculated",
   };
   return labels[event.eventType] ?? event.eventType.replaceAll("_", " ");
 }
@@ -890,6 +977,12 @@ function OrderCard({
                 {order.deliveryAddress.city}
               </span>
             )}
+            {order.deliveryDistanceMeters !== undefined && (
+              <span>
+                {(order.deliveryDistanceMeters / 1000).toFixed(1)} km ·{" "}
+                {formatAdminCurrency(order.deliveryFee ?? 0)} delivery
+              </span>
+            )}
           </div>
           <ul className="mt-4 space-y-2 rounded-xl bg-stone-50 p-3 text-sm">
             {order.items.map((item) => (
@@ -915,6 +1008,12 @@ function OrderCard({
           {order.closedAt && (
             <p className="mt-2 text-xs text-stone-500">
               Closed {formatAdminDate(order.closedAt)}
+            </p>
+          )}
+          {order.estimatedFulfillmentAt && (
+            <p className="mt-2 text-xs font-bold text-amber-700">
+              Est. {order.orderType === "delivery" ? "arrival" : "ready"}{" "}
+              {formatAdminDate(order.estimatedFulfillmentAt)}
             </p>
           )}
           <OrderActions
