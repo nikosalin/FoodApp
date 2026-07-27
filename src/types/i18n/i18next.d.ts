@@ -11,7 +11,7 @@ import Resources from "./resources";
  */
 declare module "i18next" {
   interface CustomTypeOptions {
-    defaultNS: "home" | "food";
+    defaultNS: "home" | "food" | "menu" | "cart";
     resources: Resources;
   }
 }
