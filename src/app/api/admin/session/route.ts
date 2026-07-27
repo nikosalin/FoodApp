@@ -11,13 +11,54 @@ import {
   checkLoginRateLimit,
   clearLoginRateLimit,
 } from "@/features/orders/server/rate-limit";
+import { getServerSupabase } from "@/lib/supabase/server";
+import { getAdminSupabase, isSupabaseConfigured } from "@/lib/supabase/admin";
+import { databaseRestaurantId } from "@/features/orders/server/supabase-order-repository";
 
 export const runtime = "nodejs";
 
-export function GET(request: NextRequest) {
+export async function GET(request: NextRequest) {
   const session = readSession(request);
   if (!session) {
     return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  }
+  if (isSupabaseConfigured()) {
+    const supabase = await getServerSupabase();
+    const admin = getAdminSupabase();
+    if (!supabase || !admin) {
+      return NextResponse.json(
+        { error: "Authentication is unavailable" },
+        { status: 503 },
+      );
+    }
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (userError || !user || user.id !== session.sub) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 },
+      );
+    }
+    const { data: membership, error: membershipError } = await admin
+      .from("business_admins")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+    if (membershipError) {
+      return NextResponse.json(
+        { error: "Unable to verify administrator access" },
+        { status: 503 },
+      );
+    }
+    if (!membership) {
+      return NextResponse.json(
+        { error: "Administrator access required" },
+        { status: 403 },
+      );
+    }
   }
   return NextResponse.json({
     admin: { email: session.email, name: session.name },
@@ -55,23 +96,86 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Malformed JSON body" }, { status: 400 });
   }
-  if (!credentialsAreValid(body.email, body.password)) {
+  const supabaseConfigured = isSupabaseConfigured();
+  let authenticated = {
+    sub: "admin-demo",
+    email: "admin@foodorder.com",
+    name: "Super Admin",
+    restaurantIds: ["restaurant-1", "restaurant-2", "restaurant-3"],
+  };
+  if (supabaseConfigured) {
+    if (typeof body.email !== "string" || typeof body.password !== "string") {
+      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+    }
+    const supabase = await getServerSupabase();
+    const admin = getAdminSupabase();
+    if (!supabase || !admin) {
+      return NextResponse.json({ error: "Authentication is unavailable" }, { status: 503 });
+    }
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: body.email.trim().toLowerCase(),
+      password: body.password,
+    });
+    if (error || !data.user) {
+      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+    }
+    const { data: memberships, error: membershipError } = await admin
+      .from("business_admins")
+      .select("business_id, role")
+      .eq("user_id", data.user.id);
+    if (membershipError || memberships.length === 0) {
+      await supabase.auth.signOut();
+      return NextResponse.json({ error: "Administrator access required" }, { status: 403 });
+    }
+    const { data: restaurants, error: restaurantsError } = await admin
+      .from("restaurants")
+      .select("id")
+      .in("business_id", memberships.map((item) => item.business_id));
+    if (restaurantsError) {
+      return NextResponse.json({ error: "Unable to resolve access" }, { status: 503 });
+    }
+    const profile = await admin
+      .from("profiles")
+      .select("display_name")
+      .eq("id", data.user.id)
+      .maybeSingle();
+    authenticated = {
+      sub: data.user.id,
+      email: data.user.email ?? body.email.trim().toLowerCase(),
+      name: profile.data?.display_name ?? "Administrator",
+      restaurantIds: restaurants.map((item) => applicationRestaurantId(item.id)),
+    };
+  } else if (!credentialsAreValid(body.email, body.password)) {
     return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
   }
 
   clearLoginRateLimit(clientKey);
   const response = NextResponse.json({
-    admin: { email: "admin@foodorder.com", name: "Super Admin" },
+    admin: { email: authenticated.email, name: authenticated.name },
   });
-  setSessionCookie(response, createSessionToken());
+  setSessionCookie(response, createSessionToken(authenticated));
   return response;
 }
 
-export function DELETE(request: NextRequest) {
+export async function DELETE(request: NextRequest) {
   if (!hasValidOrigin(request)) {
     return NextResponse.json({ error: "Invalid request origin" }, { status: 403 });
   }
   const response = new NextResponse(null, { status: 204 });
+  const supabase = await getServerSupabase();
+  if (supabase) await supabase.auth.signOut();
   clearSessionCookie(response);
   return response;
+}
+
+function applicationRestaurantId(databaseId: string) {
+  if (
+    databaseId === databaseRestaurantId("restaurant-1") ||
+    databaseId === databaseRestaurantId("restaurant-2")
+  ) {
+    return databaseId === databaseRestaurantId("restaurant-1")
+      ? "restaurant-1"
+      : "restaurant-2";
+  }
+  return databaseId;
 }

@@ -12,6 +12,10 @@ export function isSupportedBusinessId(
   return supportedBusinessIds.includes(businessId as SupportedBusinessId);
 }
 
+export function paypalCheckoutEnabled() {
+  return process.env.PAYPAL_CHECKOUT_ENABLED === "true";
+}
+
 function required(name: string) {
   const value = process.env[name]?.trim();
   if (!value) {

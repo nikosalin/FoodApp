@@ -1,10 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   authorizeRestaurant,
-  changeStatus,
   parseSmallJson,
 } from "@/features/orders/server/api";
 import { OrderRepositoryError } from "@/features/orders/server/order-repository";
+import {
+  attachOrderPayment,
+  getOrder,
+  updateOrderStatus,
+} from "@/features/orders/server/order-repository";
+import { cancelOnlinePayment } from "@/features/payments/server/service";
+import { PaymentError } from "@/features/payments/server/errors";
+import { isSupabaseConfigured } from "@/lib/supabase/admin";
+import {
+  getOrderFromSupabase,
+  recordOrderEvent,
+  updateOrderStatusInSupabase,
+} from "@/features/orders/server/supabase-order-repository";
+import { getPaymentForOrder } from "@/features/payments/server/payment-repository";
 
 export async function POST(
   request: NextRequest,
@@ -13,7 +26,7 @@ export async function POST(
   }: { params: Promise<{ restaurantId: string; orderId: string }> },
 ) {
   const { restaurantId, orderId } = await params;
-  const authorization = authorizeRestaurant(request, restaurantId, true);
+  const authorization = await authorizeRestaurant(request, restaurantId, true);
   if (authorization.error) return authorization.error;
   try {
     const body = await parseSmallJson(request);
@@ -27,15 +40,49 @@ export async function POST(
         { status: 400 },
       );
     }
-    return changeStatus({
-      restaurantId,
-      orderId,
-      status: "rejected",
-      rejectionReason: body.reason,
+    const usingSupabase = isSupabaseConfigured();
+    const current = usingSupabase
+      ? await getOrderFromSupabase(restaurantId, orderId)
+      : getOrder(restaurantId, orderId);
+    const paymentId =
+      current.paymentId ?? (await getPaymentForOrder(current.id))?.id;
+    if (current.paymentMethod === "online" && paymentId) {
+      const payment = await cancelOnlinePayment(paymentId);
+      if (usingSupabase) {
+        await recordOrderEvent({
+          restaurantId,
+          orderId,
+          actorUserId: authorization.session.sub,
+          eventType: "payment.cancelled",
+          details: { paymentId: payment.id },
+        });
+      }
+      if (payment && !usingSupabase) {
+        attachOrderPayment(restaurantId, orderId, payment);
+      }
+    }
+    return NextResponse.json({
+      order: usingSupabase
+        ? await updateOrderStatusInSupabase({
+            restaurantId,
+            orderId,
+            status: "rejected",
+            rejectionReason: body.reason,
+            actorUserId: authorization.session.sub,
+          })
+        : updateOrderStatus({
+            restaurantId,
+            orderId,
+            status: "rejected",
+            rejectionReason: body.reason,
+          }),
     });
   } catch (error) {
     if (error instanceof OrderRepositoryError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    if (error instanceof PaymentError) {
+      return NextResponse.json({ error: error.code }, { status: error.status });
     }
     return NextResponse.json({ error: "Unexpected server error" }, { status: 500 });
   }

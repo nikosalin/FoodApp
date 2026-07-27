@@ -8,6 +8,7 @@ export type PaymentMethod =
   | "google_pay"
   | "paypal"
   | "cash"
+  | "cash_on_delivery"
   | "external_card"
   | "other";
 

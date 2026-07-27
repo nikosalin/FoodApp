@@ -2,15 +2,20 @@
 
 import {
   ArrowLeft,
+  Banknote,
   CheckCircle2,
   ChefHat,
   Clock3,
   Euro,
+  History,
+  Minus,
   Package,
   Pencil,
   Play,
   Plus,
   ReceiptText,
+  RotateCcw,
+  Search,
   ShoppingBag,
   Store,
   User,
@@ -26,12 +31,19 @@ import {
   deleteAdminOrder,
   declineOrder,
   editAdminOrder,
+  getDeletedOrders,
+  getOrderHistory,
   getRestaurantOrders,
+  markCashCollected,
+  refundOrder,
+  restoreDeletedOrder,
   subscribeToRestaurantOrders,
   updateOrderStatus,
 } from "@/features/orders/lib/order-api";
 import type {
+  DeletedRestaurantOrder,
   OrderInput,
+  OrderHistoryEvent,
   OrderStatus,
   Restaurant,
   RestaurantOrder,
@@ -48,6 +60,8 @@ import {
 } from "./AdminUi";
 import { RestaurantQrCard } from "./RestaurantQrCard";
 import { getPublicMenu } from "@/features/menu/data/menu";
+import { RestaurantAvailabilityCard } from "@/features/restaurants/components/RestaurantAvailabilityCard";
+import { RestaurantDeliverySettingsCard } from "@/features/restaurants/components/RestaurantDeliverySettingsCard";
 
 const closedStatuses: OrderStatus[] = ["completed", "cancelled", "rejected"];
 
@@ -67,13 +81,26 @@ export function RestaurantOrderOverview({
 }) {
   const [restaurant, setRestaurant] = useState<Restaurant | null>();
   const [orders, setOrders] = useState<RestaurantOrder[]>([]);
-  const [view, setView] = useState<"pending" | "closed">("pending");
+  const [view, setView] = useState<"pending" | "closed" | "deleted">("pending");
+  const [deletedOrders, setDeletedOrders] = useState<DeletedRestaurantOrder[]>([]);
+  const [deletedLoaded, setDeletedLoaded] = useState(false);
+  const [historyTarget, setHistoryTarget] = useState<RestaurantOrder | null>(null);
+  const [historyEvents, setHistoryEvents] = useState<OrderHistoryEvent[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [archiveSearch, setArchiveSearch] = useState("");
+  const [archiveStatus, setArchiveStatus] = useState<"all" | OrderStatus>("all");
+  const [archiveFrom, setArchiveFrom] = useState("");
+  const [archiveTo, setArchiveTo] = useState("");
+  const [archivePayment, setArchivePayment] = useState<
+    "all" | NonNullable<RestaurantOrder["paymentMethod"]>
+  >("all");
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [error, setError] = useState("");
   const [busyOrderId, setBusyOrderId] = useState<string>();
   const [declineTarget, setDeclineTarget] = useState<RestaurantOrder | null>(
     null,
   );
+  const [acceptTarget, setAcceptTarget] = useState<RestaurantOrder | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<RestaurantOrder | null>(null);
 
@@ -113,6 +140,34 @@ export function RestaurantOrderOverview({
       unsubscribe();
     };
   }, [restaurantId]);
+
+  useEffect(() => {
+    if (view !== "deleted" || deletedLoaded) return;
+    getDeletedOrders(restaurantId)
+      .then((result) => {
+        setDeletedOrders(result);
+        setDeletedLoaded(true);
+      })
+      .catch((reason: unknown) => {
+        setError(
+          reason instanceof Error ? reason.message : "Unable to load deleted orders",
+        );
+      });
+  }, [deletedLoaded, restaurantId, view]);
+
+  const openHistory = async (order: RestaurantOrder) => {
+    setHistoryTarget(order);
+    setHistoryEvents([]);
+    setHistoryLoading(true);
+    try {
+      setHistoryEvents(await getOrderHistory(restaurantId, order.id));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Unable to load history");
+      setHistoryTarget(null);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
 
   const runOrderMutation = async (
     orderId: string,
@@ -154,6 +209,41 @@ export function RestaurantOrderOverview({
     };
   }, [orders]);
 
+  const visibleOrders = useMemo(() => {
+    const source = view === "pending" ? summary.pending : summary.closed;
+    if (view !== "closed") return source;
+    const query = archiveSearch.trim().toLowerCase();
+    return source.filter((order) => {
+      const matchesSearch =
+        !query ||
+        order.orderNumber.toLowerCase().includes(query) ||
+        order.customerName.toLowerCase().includes(query) ||
+        order.customerEmail?.toLowerCase().includes(query) ||
+        order.customerPhone?.toLowerCase().includes(query);
+      const orderDate = new Date(order.closedAt ?? order.createdAt);
+      const matchesFrom =
+        !archiveFrom || orderDate >= new Date(`${archiveFrom}T00:00:00`);
+      const matchesTo =
+        !archiveTo || orderDate <= new Date(`${archiveTo}T23:59:59.999`);
+      return (
+        matchesSearch &&
+        matchesFrom &&
+        matchesTo &&
+        (archiveStatus === "all" || order.status === archiveStatus) &&
+        (archivePayment === "all" || order.paymentMethod === archivePayment)
+      );
+    });
+  }, [
+    archivePayment,
+    archiveFrom,
+    archiveSearch,
+    archiveStatus,
+    archiveTo,
+    summary.closed,
+    summary.pending,
+    view,
+  ]);
+
   if (restaurant === undefined) {
     return <p className="text-sm text-stone-500">Loading restaurant orders…</p>;
   }
@@ -173,9 +263,6 @@ export function RestaurantOrderOverview({
       </AdminCard>
     );
   }
-
-  const visibleOrders =
-    view === "pending" ? summary.pending : summary.closed;
 
   return (
     <div className="space-y-6">
@@ -251,6 +338,10 @@ export function RestaurantOrderOverview({
         />
       </div>
 
+      <RestaurantAvailabilityCard restaurantId={restaurant.id} />
+
+      <RestaurantDeliverySettingsCard restaurantId={restaurant.id} />
+
       <RestaurantQrCard restaurant={restaurant} />
 
       {error && (
@@ -270,9 +361,125 @@ export function RestaurantOrderOverview({
           onClick={() => setView("closed")}
           label={`Closed (${summary.closed.length})`}
         />
+        <OrderTab
+          active={view === "deleted"}
+          onClick={() => setView("deleted")}
+          label={`Deleted${deletedLoaded ? ` (${deletedOrders.length})` : ""}`}
+        />
       </div>
 
-      {loadingOrders ? (
+      {view === "closed" && (
+        <AdminCard>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_12rem_13rem_10rem_10rem]">
+            <label className="relative">
+              <Search className="absolute left-3 top-3.5 size-4 text-stone-400" />
+              <input
+                className={`${fieldClassName} pl-9`}
+                value={archiveSearch}
+                onChange={(event) => setArchiveSearch(event.target.value)}
+                placeholder="Order, customer, email or phone"
+                aria-label="Search closed orders"
+              />
+            </label>
+            <select
+              className={fieldClassName}
+              value={archiveStatus}
+              onChange={(event) =>
+                setArchiveStatus(event.target.value as "all" | OrderStatus)
+              }
+              aria-label="Filter by order status"
+            >
+              <option value="all">All statuses</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="rejected">Rejected</option>
+            </select>
+            <select
+              className={fieldClassName}
+              value={archivePayment}
+              onChange={(event) =>
+                setArchivePayment(
+                  event.target.value as typeof archivePayment,
+                )
+              }
+              aria-label="Filter by payment method"
+            >
+              <option value="all">All payment methods</option>
+              <option value="online">Online card</option>
+              <option value="cash_on_site">Cash on site</option>
+              <option value="cash_on_delivery">Cash on delivery</option>
+              <option value="external_card">External terminal</option>
+            </select>
+            <label>
+              <span className="sr-only">Closed from date</span>
+              <input
+                type="date"
+                className={fieldClassName}
+                value={archiveFrom}
+                onChange={(event) => setArchiveFrom(event.target.value)}
+                aria-label="Closed from date"
+              />
+            </label>
+            <label>
+              <span className="sr-only">Closed through date</span>
+              <input
+                type="date"
+                className={fieldClassName}
+                value={archiveTo}
+                min={archiveFrom || undefined}
+                onChange={(event) => setArchiveTo(event.target.value)}
+                aria-label="Closed through date"
+              />
+            </label>
+          </div>
+        </AdminCard>
+      )}
+
+      {view === "deleted" ? (
+        !deletedLoaded ? (
+          <AdminCard className="py-14 text-center">
+            <p className="text-stone-500">Loading deleted orders…</p>
+          </AdminCard>
+        ) : deletedOrders.length === 0 ? (
+          <AdminCard className="py-14 text-center">
+            <Trash2 className="mx-auto size-14 text-stone-300" />
+            <h2 className="mt-4 text-xl font-bold">No deleted orders</h2>
+          </AdminCard>
+        ) : (
+          <div className="grid gap-4">
+            {deletedOrders.map((order) => (
+              <DeletedOrderCard
+                key={order.id}
+                order={order}
+                busy={busyOrderId === order.id}
+                onHistory={() => void openHistory(order)}
+                onRestore={async () => {
+                  setBusyOrderId(order.id);
+                  setError("");
+                  try {
+                    const restored = await restoreDeletedOrder(
+                      restaurantId,
+                      order.id,
+                    );
+                    setDeletedOrders((current) =>
+                      current.filter((item) => item.id !== order.id),
+                    );
+                    setOrders((current) => [restored, ...current]);
+                  } catch (reason) {
+                    setError(
+                      reason instanceof Error
+                        ? reason.message
+                        : "Unable to restore order",
+                    );
+                  } finally {
+                    setBusyOrderId(undefined);
+                  }
+                }}
+              />
+            ))}
+          </div>
+        )
+      ) : loadingOrders ? (
         <AdminCard className="py-14 text-center">
           <p className="text-stone-500">Loading orders from the API…</p>
         </AdminCard>
@@ -299,11 +506,7 @@ export function RestaurantOrderOverview({
                 key={order.id}
                 order={order}
                 busy={busyOrderId === order.id}
-                onAccept={() =>
-                  runOrderMutation(order.id, () =>
-                    acceptOrder(restaurantId, order.id),
-                  )
-                }
+                onAccept={() => setAcceptTarget(order)}
                 onDecline={() => setDeclineTarget(order)}
                 onStatus={(status) =>
                   runOrderMutation(order.id, () =>
@@ -317,7 +520,7 @@ export function RestaurantOrderOverview({
                 onDelete={async () => {
                   if (
                     !window.confirm(
-                      `Delete order #${order.orderNumber}? This cannot be undone.`,
+                      `Move order #${order.orderNumber} to deleted orders?`,
                     )
                   ) {
                     return;
@@ -328,6 +531,7 @@ export function RestaurantOrderOverview({
                     setOrders((current) =>
                       current.filter((item) => item.id !== order.id),
                     );
+                    setDeletedLoaded(false);
                   } catch (reason) {
                     setError(
                       reason instanceof Error
@@ -338,6 +542,20 @@ export function RestaurantOrderOverview({
                     setBusyOrderId(undefined);
                   }
                 }}
+                onRefund={() => {
+                  if (!window.confirm(`Refund order #${order.orderNumber}?`)) {
+                    return;
+                  }
+                  void runOrderMutation(order.id, () =>
+                    refundOrder(restaurantId, order.id),
+                  );
+                }}
+                onCashCollected={() =>
+                  void runOrderMutation(order.id, () =>
+                    markCashCollected(restaurantId, order.id),
+                  )
+                }
+                onHistory={() => void openHistory(order)}
               />
             ))}
         </div>
@@ -353,6 +571,19 @@ export function RestaurantOrderOverview({
               declineOrder(restaurantId, declineTarget.id, reason),
             );
             setDeclineTarget(null);
+          }}
+        />
+      )}
+      {acceptTarget && (
+        <AcceptOrderModal
+          order={acceptTarget}
+          busy={busyOrderId === acceptTarget.id}
+          onClose={() => setAcceptTarget(null)}
+          onAccept={async (estimateMinutes) => {
+            await runOrderMutation(acceptTarget.id, () =>
+              acceptOrder(restaurantId, acceptTarget.id, estimateMinutes),
+            );
+            setAcceptTarget(null);
           }}
         />
       )}
@@ -386,8 +617,232 @@ export function RestaurantOrderOverview({
           }}
         />
       )}
+      {historyTarget && (
+        <OrderHistoryModal
+          order={historyTarget}
+          events={historyEvents}
+          loading={historyLoading}
+          onClose={() => setHistoryTarget(null)}
+        />
+      )}
     </div>
   );
+}
+
+function AcceptOrderModal({
+  order,
+  busy,
+  onClose,
+  onAccept,
+}: {
+  order: RestaurantOrder;
+  busy: boolean;
+  onClose: () => void;
+  onAccept: (estimateMinutes: number) => Promise<void>;
+}) {
+  const [estimateMinutes, setEstimateMinutes] = useState(
+    order.orderType === "delivery" ? 45 : 30,
+  );
+  const [estimateBaseTime] = useState(() => Date.now());
+
+  return (
+    <AdminModal title={`Accept #${order.orderNumber}`} onClose={onClose}>
+      <p className="text-sm text-stone-600">
+        Give the customer a realistic{" "}
+        {order.orderType === "delivery" ? "arrival" : "ready"} estimate.
+      </p>
+      <label className="mt-5 block text-sm font-bold">
+        Estimated minutes
+        <input
+          type="number"
+          min={10}
+          max={180}
+          step={5}
+          value={estimateMinutes}
+          onChange={(event) => setEstimateMinutes(Number(event.target.value))}
+          className={`${fieldClassName} mt-2`}
+        />
+      </label>
+      <p className="mt-2 text-xs text-stone-500">
+        Estimated{" "}
+        {order.orderType === "delivery" ? "arrival" : "ready time"}:{" "}
+        {new Date(
+          estimateBaseTime + estimateMinutes * 60_000,
+        ).toLocaleTimeString("de-DE", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </p>
+      <div className="mt-6 flex justify-end gap-2">
+        <button
+          type="button"
+          className={secondaryButtonClassName}
+          onClick={onClose}
+          disabled={busy}
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          className={primaryButtonClassName}
+          disabled={
+            busy ||
+            !Number.isInteger(estimateMinutes) ||
+            estimateMinutes < 10 ||
+            estimateMinutes > 180
+          }
+          onClick={() => void onAccept(estimateMinutes)}
+        >
+          <CheckCircle2 className="size-4" />
+          Accept with estimate
+        </button>
+      </div>
+    </AdminModal>
+  );
+}
+
+function DeletedOrderCard({
+  order,
+  busy,
+  onRestore,
+  onHistory,
+}: {
+  order: DeletedRestaurantOrder;
+  busy: boolean;
+  onRestore: () => void;
+  onHistory: () => void;
+}) {
+  return (
+    <AdminCard>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Trash2 className="size-5 text-stone-500" />
+            <h2 className="text-lg font-black">Order #{order.orderNumber}</h2>
+            <AdminBadge>{order.status}</AdminBadge>
+          </div>
+          <p className="mt-2 text-sm text-stone-500">
+            {order.customerName} · {formatAdminCurrency(order.total)}
+          </p>
+          <p className="mt-1 text-xs text-stone-500">
+            Deleted {formatAdminDate(order.deletedAt)}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className={secondaryButtonClassName}
+            onClick={onHistory}
+            disabled={busy}
+          >
+            <History className="size-4" />
+            View history
+          </button>
+          <button
+            type="button"
+            className={primaryButtonClassName}
+            onClick={onRestore}
+            disabled={busy}
+          >
+            <RotateCcw className="size-4" />
+            Restore
+          </button>
+        </div>
+      </div>
+    </AdminCard>
+  );
+}
+
+function OrderHistoryModal({
+  order,
+  events,
+  loading,
+  onClose,
+}: {
+  order: RestaurantOrder;
+  events: OrderHistoryEvent[];
+  loading: boolean;
+  onClose: () => void;
+}) {
+  return (
+    <AdminModal title={`History · #${order.orderNumber}`} onClose={onClose}>
+      {loading ? (
+        <p className="py-8 text-center text-stone-500">Loading history…</p>
+      ) : events.length === 0 ? (
+        <p className="py-8 text-center text-stone-500">
+          No historical events recorded.
+        </p>
+      ) : (
+        <ol className="relative ml-2 border-l border-stone-200">
+          {events.map((event) => (
+            <li key={event.id} className="relative pb-6 pl-6 last:pb-0">
+              <span className="absolute -left-2 top-1.5 size-4 rounded-full border-4 border-white bg-amber-600" />
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <p className="font-bold">{historyEventLabel(event)}</p>
+                <time className="text-xs text-stone-500">
+                  {formatAdminDate(event.createdAt)}
+                </time>
+              </div>
+              <p className="mt-1 text-sm text-stone-500">
+                {event.actorName ?? "System"}
+              </p>
+              {event.fromStatus && event.toStatus && (
+                <p className="mt-2 text-sm text-stone-700">
+                  {event.fromStatus} → <strong>{event.toStatus}</strong>
+                </p>
+              )}
+              {Object.keys(event.details).length > 0 && (
+                <dl className="mt-2 grid gap-1 rounded-lg bg-stone-50 p-3 text-xs">
+                  {Object.entries(event.details).map(([key, value]) => (
+                    <div key={key} className="flex justify-between gap-4">
+                      <dt className="text-stone-500">{detailLabel(key)}</dt>
+                      <dd className="max-w-64 text-right font-medium">
+                        {formatDetailValue(key, value)}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+            </li>
+          ))}
+        </ol>
+      )}
+    </AdminModal>
+  );
+}
+
+function historyEventLabel(event: OrderHistoryEvent) {
+  const labels: Record<string, string> = {
+    "order.created": "Order created",
+    "order.status_changed": "Status changed",
+    "order.edited": "Order edited",
+    "order.deleted": "Order deleted",
+    "order.restored": "Order restored",
+    "order.fulfillment_estimated": "Fulfilment time estimated",
+    "payment.captured": "Card payment captured",
+    "payment.cancelled": "Payment authorization cancelled",
+    "payment.refunded": "Payment refunded",
+    "payment.cash_collected": "Cash collected",
+    "delivery.quoted": "Delivery radius and fee calculated",
+  };
+  return labels[event.eventType] ?? event.eventType.replaceAll("_", " ");
+}
+
+function detailLabel(key: string) {
+  return key
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (character) => character.toUpperCase());
+}
+
+function formatDetailValue(
+  key: string,
+  value: string | number | boolean | null,
+) {
+  if (value === null) return "—";
+  if (key.toLowerCase().includes("minor") && typeof value === "number") {
+    return formatAdminCurrency(value / 100);
+  }
+  return String(value);
 }
 
 function SummaryCard({
@@ -450,6 +905,9 @@ function OrderCard({
   onStatus,
   onEdit,
   onDelete,
+  onRefund,
+  onCashCollected,
+  onHistory,
 }: {
   order: RestaurantOrder;
   busy: boolean;
@@ -460,6 +918,9 @@ function OrderCard({
   ) => void;
   onEdit: () => void;
   onDelete: () => void;
+  onRefund: () => void;
+  onCashCollected: () => void;
+  onHistory: () => void;
 }) {
   const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
   const statusTone = closedStatuses.includes(order.status)
@@ -496,6 +957,32 @@ function OrderCard({
               {order.orderType}
               {order.tableNumber ? ` · Table ${order.tableNumber}` : ""}
             </span>
+            <span>
+              {order.paymentMethod === "cash_on_site"
+                ? order.orderType === "takeaway"
+                  ? "Cash on pickup"
+                  : "Cash on site"
+                : order.paymentMethod === "external_card"
+                  ? "External terminal"
+                  : order.paymentMethod === "cash_on_delivery"
+                    ? "Cash on delivery"
+                  : order.paymentMethod === "online"
+                    ? "Online payment"
+                    : "Payment not recorded"}
+              {order.paymentStatus ? ` · ${order.paymentStatus}` : ""}
+            </span>
+            {order.deliveryAddress && (
+              <span>
+                {order.deliveryAddress.street}, {order.deliveryAddress.postalCode}{" "}
+                {order.deliveryAddress.city}
+              </span>
+            )}
+            {order.deliveryDistanceMeters !== undefined && (
+              <span>
+                {(order.deliveryDistanceMeters / 1000).toFixed(1)} km ·{" "}
+                {formatAdminCurrency(order.deliveryFee ?? 0)} delivery
+              </span>
+            )}
           </div>
           <ul className="mt-4 space-y-2 rounded-xl bg-stone-50 p-3 text-sm">
             {order.items.map((item) => (
@@ -523,6 +1010,12 @@ function OrderCard({
               Closed {formatAdminDate(order.closedAt)}
             </p>
           )}
+          {order.estimatedFulfillmentAt && (
+            <p className="mt-2 text-xs font-bold text-amber-700">
+              Est. {order.orderType === "delivery" ? "arrival" : "ready"}{" "}
+              {formatAdminDate(order.estimatedFulfillmentAt)}
+            </p>
+          )}
           <OrderActions
             order={order}
             busy={busy}
@@ -531,6 +1024,9 @@ function OrderCard({
             onStatus={onStatus}
             onEdit={onEdit}
             onDelete={onDelete}
+            onRefund={onRefund}
+            onCashCollected={onCashCollected}
+            onHistory={onHistory}
           />
         </div>
       </div>
@@ -546,6 +1042,9 @@ function OrderActions({
   onStatus,
   onEdit,
   onDelete,
+  onRefund,
+  onCashCollected,
+  onHistory,
 }: {
   order: RestaurantOrder;
   busy: boolean;
@@ -556,9 +1055,21 @@ function OrderActions({
   ) => void;
   onEdit: () => void;
   onDelete: () => void;
+  onRefund: () => void;
+  onCashCollected: () => void;
+  onHistory: () => void;
 }) {
   const managementActions = (
     <div className="mt-2 flex gap-2 lg:flex-col">
+      <button
+        type="button"
+        disabled={busy}
+        onClick={onHistory}
+        className={secondaryButtonClassName}
+      >
+        <History className="size-4" />
+        View history
+      </button>
       {!closedStatuses.includes(order.status) && (
         <button
           type="button"
@@ -579,6 +1090,32 @@ function OrderActions({
         <Trash2 className="size-4" />
         Delete
       </button>
+      {order.paymentMethod === "online" &&
+        order.paymentStatus === "captured" && (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={onRefund}
+          className={`${secondaryButtonClassName} text-amber-800`}
+        >
+          <ReceiptText className="size-4" />
+          Refund payment
+        </button>
+      )}
+      {(order.paymentMethod === "cash_on_site" ||
+        order.paymentMethod === "cash_on_delivery") &&
+        order.paymentStatus !== "captured" &&
+        order.paymentStatus !== "refunded" && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onCashCollected}
+            className={`${secondaryButtonClassName} text-emerald-800`}
+          >
+            <Banknote className="size-4" />
+            Mark cash collected
+          </button>
+        )}
     </div>
   );
 
@@ -741,6 +1278,19 @@ function OrderEditorModal({
   const [orderType, setOrderType] = useState<
     "table" | "takeaway" | "delivery"
   >(order?.orderType ?? "table");
+  const [paymentMethod, setPaymentMethod] = useState<
+    "online" | "cash_on_site" | "cash_on_delivery" | "external_card"
+  >(order?.paymentMethod ?? "cash_on_site");
+  const [cashOnDeliveryEnabled, setCashOnDeliveryEnabled] = useState(false);
+  const [deliveryStreet, setDeliveryStreet] = useState(
+    order?.deliveryAddress?.street ?? "",
+  );
+  const [deliveryPostalCode, setDeliveryPostalCode] = useState(
+    order?.deliveryAddress?.postalCode ?? "",
+  );
+  const [deliveryCity, setDeliveryCity] = useState(
+    order?.deliveryAddress?.city ?? "",
+  );
   const [tableNumber, setTableNumber] = useState(order?.tableNumber ?? "");
   const [items, setItems] = useState(() => {
     if (order?.items.length) {
@@ -758,17 +1308,7 @@ function OrderEditorModal({
           : item;
       });
     }
-    const first = menu[0];
-    return first
-      ? [
-          {
-            menuItemId: first.id,
-            name: first.name,
-            quantity: 1,
-            unitPrice: first.price,
-          },
-        ]
-      : [];
+    return [];
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -776,6 +1316,22 @@ function OrderEditorModal({
     (sum, item) => sum + item.quantity * item.unitPrice,
     0,
   );
+
+  useEffect(() => {
+    fetch(`/api/restaurants/${encodeURIComponent(restaurant.id)}/availability`, {
+      cache: "no-store",
+    })
+      .then((response) => response.json())
+      .then(
+        (body: {
+          availability?: { cashOnDeliveryEnabled?: boolean };
+        }) =>
+          setCashOnDeliveryEnabled(
+            body.availability?.cashOnDeliveryEnabled === true,
+          ),
+      )
+      .catch(() => undefined);
+  }, [restaurant.id]);
 
   return (
     <AdminModal title={order ? "Edit order" : "Create order"} onClose={onClose}>
@@ -791,7 +1347,17 @@ function OrderEditorModal({
               customerEmail: customerEmail || undefined,
               customerPhone: customerPhone || undefined,
               preferredChannel,
+              paymentMethod,
               orderType,
+              deliveryAddress:
+                orderType === "delivery"
+                  ? {
+                      street: deliveryStreet,
+                      postalCode: deliveryPostalCode,
+                      city: deliveryCity,
+                      countryCode: "DE",
+                    }
+                  : undefined,
               tableNumber: tableNumber || undefined,
               items,
             });
@@ -863,15 +1429,57 @@ function OrderEditorModal({
             <select
               className={fieldClassName}
               value={orderType}
-              onChange={(event) =>
-                setOrderType(
-                  event.target.value as "table" | "takeaway" | "delivery",
-                )
-              }
+              onChange={(event) => {
+                const next = event.target.value as
+                  | "table"
+                  | "takeaway"
+                  | "delivery";
+                setOrderType(next);
+                if (next === "delivery" && paymentMethod === "cash_on_site") {
+                  setPaymentMethod("online");
+                }
+                if (
+                  next !== "delivery" &&
+                  paymentMethod === "cash_on_delivery"
+                ) {
+                  setPaymentMethod("cash_on_site");
+                }
+              }}
             >
               <option value="table">Table</option>
               <option value="takeaway">Takeaway</option>
               <option value="delivery">Delivery</option>
+            </select>
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-sm font-semibold">
+              Payment method
+            </span>
+            <select
+              className={fieldClassName}
+              value={paymentMethod}
+              onChange={(event) =>
+                setPaymentMethod(
+                  event.target.value as
+                    | "online"
+                    | "cash_on_site"
+                    | "cash_on_delivery"
+                    | "external_card",
+                )
+              }
+            >
+              <option value="online">Online payment</option>
+              {orderType !== "delivery" && (
+                <option value="cash_on_site">
+                  {orderType === "takeaway"
+                    ? "Cash when picking up"
+                    : "Cash at the restaurant"}
+                </option>
+              )}
+              {orderType === "delivery" && cashOnDeliveryEnabled && (
+                <option value="cash_on_delivery">Cash on delivery</option>
+              )}
+              <option value="external_card">Paid on external terminal</option>
             </select>
           </label>
           {orderType === "table" && (
@@ -886,118 +1494,220 @@ function OrderEditorModal({
               />
             </label>
           )}
+          {orderType === "delivery" && (
+            <>
+              <label className="block sm:col-span-2">
+                <span className="mb-1.5 block text-sm font-semibold">
+                  Street and house number
+                </span>
+                <input
+                  className={fieldClassName}
+                  value={deliveryStreet}
+                  onChange={(event) => setDeliveryStreet(event.target.value)}
+                  minLength={3}
+                  maxLength={120}
+                  required
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-semibold">
+                  German postal code
+                </span>
+                <input
+                  className={fieldClassName}
+                  value={deliveryPostalCode}
+                  onChange={(event) =>
+                    setDeliveryPostalCode(event.target.value)
+                  }
+                  pattern="[0-9]{5}"
+                  maxLength={5}
+                  required
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-semibold">City</span>
+                <input
+                  className={fieldClassName}
+                  value={deliveryCity}
+                  onChange={(event) => setDeliveryCity(event.target.value)}
+                  minLength={2}
+                  maxLength={80}
+                  required
+                />
+              </label>
+            </>
+          )}
+        </div>
+
+        <div>
+          <div className="mb-3">
+            <h3 className="font-bold">Select from the menu</h3>
+            <p className="mt-1 text-xs text-stone-500">
+              Click an item to add it. Click it again to increase the quantity.
+            </p>
+          </div>
+          {menu.length === 0 ? (
+            <p className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+              This restaurant has no published menu items yet.
+            </p>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {menu.map((menuItem) => {
+                const selected = items.find(
+                  (item) => item.menuItemId === menuItem.id,
+                );
+                return (
+                  <button
+                    key={menuItem.id}
+                    type="button"
+                    aria-pressed={Boolean(selected)}
+                    onClick={() =>
+                      setItems((current) => {
+                        const existing = current.find(
+                          (item) => item.menuItemId === menuItem.id,
+                        );
+                        return existing
+                          ? current.map((item) =>
+                              item.menuItemId === menuItem.id
+                                ? {
+                                    ...item,
+                                    quantity: Math.min(99, item.quantity + 1),
+                                  }
+                                : item,
+                            )
+                          : [
+                              ...current,
+                              {
+                                menuItemId: menuItem.id,
+                                name: menuItem.name,
+                                quantity: 1,
+                                unitPrice: menuItem.price,
+                              },
+                            ];
+                      })
+                    }
+                    className={`relative min-h-24 rounded-xl border p-3 text-left transition ${
+                      selected
+                        ? "border-amber-600 bg-amber-50 ring-2 ring-amber-600/20"
+                        : "border-stone-200 bg-white hover:border-amber-400 hover:bg-amber-50/40"
+                    }`}
+                  >
+                    {selected && (
+                      <span className="absolute right-2 top-2 grid min-w-6 place-items-center rounded-full bg-amber-700 px-1.5 py-0.5 text-xs font-black text-white">
+                        {selected.quantity}
+                      </span>
+                    )}
+                    <span className="block pr-7 text-sm font-bold leading-tight">
+                      {menuItem.name}
+                    </span>
+                    <span className="mt-1 block text-[11px] text-stone-500">
+                      {menuItem.category}
+                    </span>
+                    <span className="mt-2 block text-sm font-black text-amber-700">
+                      {formatAdminCurrency(menuItem.price)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div>
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="font-bold">Order items</h3>
-            <button
-              type="button"
-              className={secondaryButtonClassName}
-              disabled={menu.length === 0}
-              onClick={() =>
-                setItems((current) => {
-                  const first = menu[0];
-                  return first
-                    ? [
-                        ...current,
-                        {
-                          menuItemId: first.id,
-                          name: first.name,
-                          quantity: 1,
-                          unitPrice: first.price,
-                        },
-                      ]
-                    : current;
-                })
-              }
-            >
-              <Plus className="size-4" />
-              Add item
-            </button>
+            <h3 className="font-bold">Selected items</h3>
+            <AdminBadge>{items.length} selected</AdminBadge>
           </div>
-          <div className="space-y-3">
-            {items.map((item, index) => (
-              <div
-                key={index}
-                className="grid grid-cols-[1fr_72px_100px_40px] gap-2"
-              >
-                <select
-                  className={fieldClassName}
-                  value={item.menuItemId ?? ""}
-                  onChange={(event) =>
-                    setItems((current) => {
-                      const selected = menu.find(
-                        (candidate) => candidate.id === event.target.value,
-                      );
-                      if (!selected) return current;
-                      return current.map((candidate, itemIndex) =>
-                        itemIndex === index
-                          ? {
-                              menuItemId: selected.id,
-                              name: selected.name,
-                              quantity: candidate.quantity,
-                              unitPrice: selected.price,
-                            }
-                          : candidate,
-                      );
-                    })
-                  }
-                  required
-                  aria-label="Menu item"
-                >
-                  {!item.menuItemId && (
-                    <option value="">Select a current menu item</option>
-                  )}
-                  {menu.map((menuItem) => (
-                    <option key={menuItem.id} value={menuItem.id}>
-                      {menuItem.name}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  className={fieldClassName}
-                  type="number"
-                  min={1}
-                  max={99}
-                  value={item.quantity}
-                  onChange={(event) =>
-                    setItems((current) =>
-                      current.map((candidate, itemIndex) =>
-                        itemIndex === index
-                          ? {
-                              ...candidate,
-                              quantity: Number(event.target.value),
-                            }
-                          : candidate,
-                      ),
-                    )
-                  }
-                  aria-label="Quantity"
-                  required
-                />
+          {items.length === 0 ? (
+            <p className="rounded-xl bg-stone-50 p-4 text-center text-sm text-stone-500">
+              Select at least one menu item above.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {items.map((item) => (
                 <div
-                  className={`${fieldClassName} flex items-center bg-stone-50 text-stone-600`}
-                  aria-label="Menu price"
+                  key={item.menuItemId ?? item.name}
+                  className="flex items-center gap-3 rounded-xl border border-stone-200 bg-white p-3"
                 >
-                  {formatAdminCurrency(item.unitPrice)}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold">{item.name}</p>
+                    <p className="text-xs text-stone-500">
+                      {formatAdminCurrency(item.unitPrice)} each
+                    </p>
+                  </div>
+                  <div className="flex items-center rounded-lg bg-stone-100 p-1">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setItems((current) =>
+                          item.quantity === 1
+                            ? current.filter(
+                                (candidate) =>
+                                  candidate.menuItemId !== item.menuItemId,
+                              )
+                            : current.map((candidate) =>
+                                candidate.menuItemId === item.menuItemId
+                                  ? {
+                                      ...candidate,
+                                      quantity: candidate.quantity - 1,
+                                    }
+                                  : candidate,
+                              ),
+                        )
+                      }
+                      className="grid size-8 place-items-center rounded-md bg-white text-stone-700 hover:bg-stone-200"
+                      aria-label={`Decrease ${item.name}`}
+                    >
+                      <Minus className="size-4" />
+                    </button>
+                    <span className="w-8 text-center text-sm font-black">
+                      {item.quantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setItems((current) =>
+                          current.map((candidate) =>
+                            candidate.menuItemId === item.menuItemId
+                              ? {
+                                  ...candidate,
+                                  quantity: Math.min(
+                                    99,
+                                    candidate.quantity + 1,
+                                  ),
+                                }
+                              : candidate,
+                          ),
+                        )
+                      }
+                      className="grid size-8 place-items-center rounded-md bg-stone-950 text-white hover:bg-amber-700"
+                      aria-label={`Increase ${item.name}`}
+                    >
+                      <Plus className="size-4" />
+                    </button>
+                  </div>
+                  <p className="w-20 text-right text-sm font-black">
+                    {formatAdminCurrency(item.quantity * item.unitPrice)}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setItems((current) =>
+                        current.filter(
+                          (candidate) =>
+                            candidate.menuItemId !== item.menuItemId,
+                        ),
+                      )
+                    }
+                    className="grid size-9 place-items-center rounded-lg text-red-700 hover:bg-red-50"
+                    aria-label={`Remove ${item.name}`}
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  disabled={items.length === 1}
-                  onClick={() =>
-                    setItems((current) =>
-                      current.filter((_, itemIndex) => itemIndex !== index),
-                    )
-                  }
-                  className="grid h-11 place-items-center rounded-xl text-red-700 hover:bg-red-50 disabled:opacity-30"
-                  aria-label="Remove item"
-                >
-                  <Trash2 className="size-4" />
-                </button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-between rounded-xl bg-stone-50 p-4">

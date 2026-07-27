@@ -1,7 +1,8 @@
 # Payments
 
-Status: provider infrastructure implemented; public checkout intentionally not
-enabled until authoritative menu pricing and durable Supabase persistence exist.
+Status: Stripe checkout, manual capture, cancellation, webhooks, Stripe full
+refunds, and Supabase payment persistence are connected. PayPal checkout is
+implemented but disabled by default.
 
 ## Initial scope
 
@@ -45,10 +46,19 @@ capture succeeds. A capture failure must remain visible and retryable.
 - `src/features/payments/server/paypal.ts`: authorize, capture, void, and
   provider-side webhook verification.
 - `src/features/payments/server/service.ts`: provider-neutral orchestration.
-- `src/features/payments/server/payment-repository.ts`: temporary in-memory
-  payment and webhook-event store.
+- `src/features/payments/server/payment-repository.ts`: Supabase payment and
+  replay-safe webhook-event storage with an unconfigured local-memory fallback.
+- `src/features/payments/components/StripePaymentStep.tsx`: Stripe Elements
+  confirmation form using Stripe's official React integration.
+- `POST /api/orders`: creates a server-priced order and manual-capture
+  Stripe PaymentIntent or PayPal Order for online payments.
+- `GET /api/payments/paypal/return`: verifies PayPal's returned order ID against
+  the stored payment and finalizes the authorization server-side.
+- Admin acceptance captures the authorization; decline cancels it.
+- `POST /api/admin/restaurants/:restaurantId/orders/:orderId/refund`: creates a
+  full refund for a captured online payment.
 
-The in-memory repository resets on restart and is not production persistence.
+The fallback repository resets on restart and must never be used in production.
 
 ## Webhooks
 
@@ -96,22 +106,78 @@ Stripe uses one platform secret and a connected account ID per business.
 PayPal uses separate credentials and webhook IDs per business. Sandbox and live
 credentials belong in different deployment environments.
 
-## Public checkout gate
+## Public checkout safeguards
 
-Do not expose `authorizeOnlinePayment` to guests until:
+The test checkout enforces:
 
 1. Menu items and options are in Supabase.
 2. The browser sends identifiers and quantities, never trusted prices.
 3. The server calculates integer euro cents.
-4. Order, price snapshot, payment, and idempotency records are durable.
-5. Postgres enforces idempotency key plus request-hash uniqueness.
-6. The business is derived from the restaurant.
-7. Restaurant availability and delivery area are checked.
-8. Shared rate limiting and bot protection are active.
+4. The business is derived from the restaurant.
+5. Restaurant availability is checked.
+6. Request size, origin, rate limits, and idempotency keys are checked.
+
+Supabase mode stores orders, payments, price snapshots, webhook replay records,
+and idempotency records durably. Shared rate limiting and bot protection remain
+required before running multiple public app instances.
 
 The browser may receive a Stripe client secret or PayPal approval URL. It may
 never receive secrets or choose the amount, merchant, currency, or capture
 state.
+
+## Stripe test-mode setup
+
+1. Enable Stripe Connect and create one connected test account for each family
+   business.
+2. Copy the variables from `config/payments.env.example` into `.env.local`.
+3. Add the platform test secret and publishable keys.
+4. Add each connected account ID to its business-specific variable.
+5. Install the Stripe CLI, sign in, and forward local test events:
+
+   ```bash
+   stripe listen --forward-connect-to localhost:3000/api/webhooks/stripe
+   ```
+
+6. Put the printed `whsec_...` value in `STRIPE_WEBHOOK_SECRET`.
+7. Restart the development server after changing environment values.
+8. Place an online order, confirm it, then accept or decline it in the admin
+   panel.
+
+Stripe test cards:
+
+- Success: `4242 4242 4242 4242`
+- 3D Secure: `4000 0025 0000 3155`
+- Declined: `4000 0000 0000 9995`
+
+Use any future expiry and any three-digit CVC in test mode.
+
+## PayPal sandbox setup
+
+PayPal is hidden from checkout and rejected by the order API unless
+`PAYPAL_CHECKOUT_ENABLED=true`. Keep the flag false until the sandbox lifecycle
+below passes for both businesses.
+
+Each family business needs its own PayPal Business account in production. For
+local testing, create two sandbox Business accounts and at least one sandbox
+Personal buyer account in the PayPal Developer Dashboard.
+
+1. Create one REST app under each sandbox Business account.
+2. Put each app's client ID and secret in the matching
+   `PAYPAL_BUSINESS_1_*` or `PAYPAL_BUSINESS_2_*` variables from
+   `config/payments.env.example`.
+3. Keep `PAYPAL_MODE=sandbox`.
+4. For each app, register its business-specific webhook URL and subscribe to
+   the PayPal events listed above. Save the returned webhook ID in the matching
+   `PAYPAL_BUSINESS_*_WEBHOOK_ID` variable.
+5. Restart the app, choose PayPal at checkout, and sign in with the sandbox
+   Personal buyer.
+6. Confirm that returning from PayPal marks the payment authorized. Accepting
+   the order must capture it; declining must void it.
+
+Use live credentials only in the production secret manager after both
+businesses have completed PayPal verification. Client secrets and webhook IDs
+must never be committed. PayPal refunds remain a production-checklist item
+until capture IDs are durably recorded and the refund path is sandbox-tested.
 
 ## Supabase model
 
@@ -148,6 +214,16 @@ provider settlement and online-payment success metrics.
 
 Every manual entry, edit, reversal, refund, capture, and cancellation needs an
 immutable administrator audit event.
+
+Customer orders may select `cash_on_site` for dine-in or takeaway. Takeaway
+customers explicitly declare that they will collect the items and pay at the
+restaurant. These orders create no Stripe or PayPal request and remain unpaid
+until an administrator records cash collection. Online payment remains
+available for delivery. A restaurant can additionally enable
+`cash_on_delivery`. This method creates an offline pending payment, requires a
+German delivery address and phone number, and becomes captured only when an
+administrator records that the driver collected the cash. Neither cash method
+can move to `completed` before collection is recorded.
 
 ## Production checklist
 

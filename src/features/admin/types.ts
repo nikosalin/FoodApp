@@ -49,16 +49,30 @@ export type OrderItem = {
   unitPrice: number;
 };
 
+export type DeliveryAddress = {
+  street: string;
+  postalCode: string;
+  city: string;
+  countryCode: "DE";
+};
+
 export type RestaurantOrder = {
   id: string;
   restaurantId: string;
   orderNumber: string;
   orderType: "table" | "takeaway" | "delivery";
+  deliveryAddress?: DeliveryAddress;
+  deliveryDistanceMeters?: number;
+  deliveryFee?: number;
+  estimatedFulfillmentAt?: string;
   tableNumber?: string;
   customerName: string;
   customerEmail?: string;
   customerPhone?: string;
   preferredChannel?: "email" | "sms";
+  paymentMethod?: "online" | "cash_on_site" | "cash_on_delivery" | "external_card";
+  paymentId?: string;
+  paymentStatus?: "pending" | "authorized" | "captured" | "cancelled" | "refunded" | "failed";
   contactVerified?: boolean;
   trackingToken?: string;
   notificationStatus?: "pending" | "sent" | "failed";
@@ -71,15 +85,38 @@ export type RestaurantOrder = {
   updatedAt?: string;
 };
 
+export type OrderHistoryEvent = {
+  id: string;
+  orderId: string;
+  eventType: string;
+  fromStatus?: OrderStatus;
+  toStatus?: OrderStatus;
+  actorName?: string;
+  details: Record<string, string | number | boolean | null>;
+  createdAt: string;
+};
+
+export type DeletedRestaurantOrder = RestaurantOrder & {
+  deletedAt: string;
+};
+
 export type OrderInput = {
   restaurantId: string;
   orderType: RestaurantOrder["orderType"];
+  deliveryAddress?: DeliveryAddress;
   tableNumber?: string;
   customerName: string;
   customerEmail?: string;
   customerPhone?: string;
   preferredChannel: "email" | "sms";
+  paymentMethod: "online" | "cash_on_site" | "cash_on_delivery" | "external_card";
+  onlinePaymentProvider?: "stripe" | "paypal";
   items: OrderItem[];
+  deliveryQuote?: {
+    zoneId: string;
+    distanceMeters: number;
+    deliveryFee: number;
+  };
 };
 
 export type AdminState = {

@@ -79,19 +79,26 @@ export function createOrder(
     restaurantId: input.restaurantId,
     orderNumber: orderNumber(),
     orderType: input.orderType,
+    deliveryAddress: input.deliveryAddress
+      ? structuredClone(input.deliveryAddress)
+      : undefined,
+    deliveryDistanceMeters: input.deliveryQuote?.distanceMeters,
+    deliveryFee: input.deliveryQuote?.deliveryFee,
     tableNumber: input.tableNumber?.trim() || undefined,
     customerName: input.customerName.trim(),
     customerEmail: input.customerEmail?.trim().toLowerCase() || undefined,
     customerPhone: input.customerPhone?.trim() || undefined,
     preferredChannel: input.preferredChannel,
+    paymentMethod: input.paymentMethod,
     contactVerified: options?.contactVerified ?? false,
     trackingToken: crypto.randomUUID().replaceAll("-", ""),
     notificationStatus: "pending",
     items: structuredClone(input.items),
-    total: input.items.reduce(
-      (sum, item) => sum + item.quantity * item.unitPrice,
-      0,
-    ),
+    total:
+      input.items.reduce(
+        (sum, item) => sum + item.quantity * item.unitPrice,
+        0,
+      ) + (input.deliveryQuote?.deliveryFee ?? 0),
     status: "pending",
     createdAt: now,
     updatedAt: now,
@@ -106,6 +113,32 @@ export function getOrderByTrackingToken(trackingToken: string) {
   return memory().orders.find(
     (order) => order.trackingToken === trackingToken,
   );
+}
+
+export function attachOrderPayment(
+  restaurantId: string,
+  orderId: string,
+  payment: { id: string; status: RestaurantOrder["paymentStatus"] },
+) {
+  const order = memory().orders.find(
+    (candidate) =>
+      candidate.id === orderId && candidate.restaurantId === restaurantId,
+  );
+  if (!order) throw new OrderRepositoryError("Order not found", 404);
+  order.paymentId = payment.id;
+  order.paymentStatus = payment.status;
+  order.updatedAt = new Date().toISOString();
+  emitChange(restaurantId);
+  return order;
+}
+
+export function getOrder(restaurantId: string, orderId: string) {
+  const order = memory().orders.find(
+    (candidate) =>
+      candidate.id === orderId && candidate.restaurantId === restaurantId,
+  );
+  if (!order) throw new OrderRepositoryError("Order not found", 404);
+  return order;
 }
 
 export function updateOrderDetails(
@@ -125,16 +158,23 @@ export function updateOrderDetails(
   const updated: RestaurantOrder = {
     ...current,
     orderType: input.orderType,
+    deliveryAddress: input.deliveryAddress
+      ? structuredClone(input.deliveryAddress)
+      : undefined,
+    deliveryDistanceMeters: input.deliveryQuote?.distanceMeters,
+    deliveryFee: input.deliveryQuote?.deliveryFee,
     tableNumber: input.tableNumber?.trim() || undefined,
     customerName: input.customerName.trim(),
     customerEmail: input.customerEmail?.trim().toLowerCase() || undefined,
     customerPhone: input.customerPhone?.trim() || undefined,
     preferredChannel: input.preferredChannel,
+    paymentMethod: input.paymentMethod,
     items: structuredClone(input.items),
-    total: input.items.reduce(
-      (sum, item) => sum + item.quantity * item.unitPrice,
-      0,
-    ),
+    total:
+      input.items.reduce(
+        (sum, item) => sum + item.quantity * item.unitPrice,
+        0,
+      ) + (input.deliveryQuote?.deliveryFee ?? 0),
     updatedAt: new Date().toISOString(),
   };
   store.orders[index] = updated;
@@ -158,6 +198,7 @@ export function updateOrderStatus(input: {
   orderId: string;
   status: OrderStatus;
   rejectionReason?: string;
+  estimatedFulfillmentAt?: string;
 }) {
   const store = memory();
   const index = store.orders.findIndex(
@@ -196,6 +237,8 @@ export function updateOrderStatus(input: {
       ? now
       : current.closedAt,
     updatedAt: now,
+    estimatedFulfillmentAt:
+      input.estimatedFulfillmentAt ?? current.estimatedFulfillmentAt,
   };
   store.orders[index] = updated;
   const notificationEvents: Partial<Record<OrderStatus, NotificationEvent>> = {

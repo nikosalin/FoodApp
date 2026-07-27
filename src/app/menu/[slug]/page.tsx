@@ -27,7 +27,12 @@ export default async function MenuPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ orderType?: string; table?: string }>;
+  searchParams: Promise<{
+    orderType?: string;
+    table?: string;
+    paypal?: string;
+    trackingToken?: string;
+  }>;
 }) {
   const [{ slug }, query] = await Promise.all([params, searchParams]);
   const restaurant = seedAdminState.restaurants.find(
@@ -50,6 +55,24 @@ export default async function MenuPage({
       items={getPublicMenu(slug)}
       initialOrderType={initialOrderType}
       initialTable={initialTable}
+      initialPaymentNotice={
+        query.paypal === "authorized" ||
+        query.paypal === "cancelled" ||
+        query.paypal === "failed" ||
+        query.paypal === "disabled"
+          ? query.paypal
+          : undefined
+      }
+      initialTrackingToken={
+        typeof query.trackingToken === "string" &&
+        /^[a-f0-9]{32}$/.test(query.trackingToken)
+          ? query.trackingToken
+          : undefined
+      }
+      paypalEnabled={process.env.PAYPAL_CHECKOUT_ENABLED === "true"}
+      stripePublishableKey={
+        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ""
+      }
     />
   );
 }

@@ -20,4 +20,9 @@ export interface PaymentProviderAdapter {
     providerPaymentId: string,
     idempotencyKey: string,
   ): Promise<void>;
+  refund(
+    businessId: SupportedBusinessId,
+    providerPaymentId: string,
+    idempotencyKey: string,
+  ): Promise<void>;
 }

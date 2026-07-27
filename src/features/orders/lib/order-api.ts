@@ -1,7 +1,9 @@
 "use client";
 
 import type {
+  DeletedRestaurantOrder,
   OrderInput,
+  OrderHistoryEvent,
   OrderStatus,
   RestaurantOrder,
 } from "@/features/admin/types";
@@ -35,6 +37,34 @@ export async function getRestaurantOrders(restaurantId: string) {
     orderBase(restaurantId),
   );
   return result.orders;
+}
+
+export async function getOrderHistory(
+  restaurantId: string,
+  orderId: string,
+) {
+  const result = await apiRequest<{ events: OrderHistoryEvent[] }>(
+    `${orderBase(restaurantId, orderId)}/history`,
+  );
+  return result.events;
+}
+
+export async function getDeletedOrders(restaurantId: string) {
+  const result = await apiRequest<{ orders: DeletedRestaurantOrder[] }>(
+    `${orderBase(restaurantId)}/deleted`,
+  );
+  return result.orders;
+}
+
+export async function restoreDeletedOrder(
+  restaurantId: string,
+  orderId: string,
+) {
+  const result = await apiRequest<{ order: RestaurantOrder }>(
+    `${orderBase(restaurantId, orderId)}/restore`,
+    { method: "POST" },
+  );
+  return result.order;
 }
 
 export function subscribeToRestaurantOrders(
@@ -85,10 +115,14 @@ export async function deleteAdminOrder(
   }
 }
 
-export async function acceptOrder(restaurantId: string, orderId: string) {
+export async function acceptOrder(
+  restaurantId: string,
+  orderId: string,
+  estimateMinutes: number,
+) {
   const result = await apiRequest<{ order: RestaurantOrder }>(
     `${orderBase(restaurantId, orderId)}/accept`,
-    { method: "POST" },
+    { method: "POST", body: JSON.stringify({ estimateMinutes }) },
   );
   return result.order;
 }
@@ -101,6 +135,25 @@ export async function declineOrder(
   const result = await apiRequest<{ order: RestaurantOrder }>(
     `${orderBase(restaurantId, orderId)}/decline`,
     { method: "POST", body: JSON.stringify({ reason }) },
+  );
+  return result.order;
+}
+
+export async function refundOrder(restaurantId: string, orderId: string) {
+  const result = await apiRequest<{ order: RestaurantOrder }>(
+    `${orderBase(restaurantId, orderId)}/refund`,
+    { method: "POST" },
+  );
+  return result.order;
+}
+
+export async function markCashCollected(
+  restaurantId: string,
+  orderId: string,
+) {
+  const result = await apiRequest<{ order: RestaurantOrder }>(
+    `${orderBase(restaurantId, orderId)}/payment-collected`,
+    { method: "POST" },
   );
   return result.order;
 }

@@ -1,6 +1,9 @@
 # Security and notification roadmap
 
-Status: architecture decision record for the pre-Supabase API.
+Status: architecture decision record. The Supabase outbox, Brevo sender,
+protected worker, delivery webhook, and guest tracking page are implemented;
+production credentials, sender-domain verification, scheduling, and monitoring
+remain deployment tasks.
 
 ## Decisions
 

@@ -6,15 +6,18 @@ import {
   hasValidOrigin,
   readSession,
 } from "./auth";
+import { getAdminSupabase, isSupabaseConfigured } from "@/lib/supabase/admin";
+import { getServerSupabase } from "@/lib/supabase/server";
 import {
   OrderRepositoryError,
   updateOrderStatus,
 } from "./order-repository";
+import { databaseRestaurantId } from "./supabase-order-repository";
 import type { OrderStatus } from "@/features/admin/types";
 import type { OrderInput } from "@/features/admin/types";
 import { getMenuForRestaurantId } from "@/features/menu/data/menu";
 
-export function authorizeRestaurant(
+export async function authorizeRestaurant(
   request: NextRequest,
   restaurantId: string,
   mutation = false,
@@ -28,7 +31,10 @@ export function authorizeRestaurant(
       ),
     };
   }
-  if (!canAccessRestaurant(session, restaurantId)) {
+  const hasAccess = isSupabaseConfigured()
+    ? await hasCurrentSupabaseAccess(session.sub, restaurantId)
+    : canAccessRestaurant(session, restaurantId);
+  if (!hasAccess) {
     return {
       error: NextResponse.json({ error: "Access denied" }, { status: 403 }),
     };
@@ -42,6 +48,34 @@ export function authorizeRestaurant(
     };
   }
   return { session };
+}
+
+async function hasCurrentSupabaseAccess(userId: string, restaurantId: string) {
+  const supabase = await getServerSupabase();
+  const admin = getAdminSupabase();
+  if (!supabase || !admin) return false;
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError || !user || user.id !== userId) return false;
+
+  const { data: restaurant, error: accessError } = await admin
+    .from("restaurants")
+    .select("business_id")
+    .eq("id", databaseRestaurantId(restaurantId))
+    .maybeSingle();
+  if (accessError || !restaurant) return false;
+
+  const { data: membership, error: membershipError } = await admin
+    .from("business_admins")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .eq("business_id", restaurant.business_id)
+    .maybeSingle();
+
+  return !membershipError && Boolean(membership);
 }
 
 export async function parseSmallJson(request: NextRequest) {
@@ -91,6 +125,8 @@ export function validateOrderInput(
     typeof body.customerPhone === "string" ? body.customerPhone.trim() : "";
   const preferredChannel = body.preferredChannel;
   const orderType = body.orderType;
+  const paymentMethod = body.paymentMethod;
+  const onlinePaymentProvider = body.onlinePaymentProvider;
 
   if (customerName.length < 2 || customerName.length > 100) {
     throw new OrderRepositoryError(
@@ -135,6 +171,44 @@ export function validateOrderInput(
   ) {
     throw new OrderRepositoryError("Invalid order type", 400);
   }
+  if (
+    paymentMethod !== "online" &&
+    paymentMethod !== "cash_on_site" &&
+    paymentMethod !== "cash_on_delivery" &&
+    paymentMethod !== "external_card"
+  ) {
+    throw new OrderRepositoryError("Invalid payment method", 400);
+  }
+  if (
+    paymentMethod === "online" &&
+    onlinePaymentProvider !== undefined &&
+    onlinePaymentProvider !== "stripe" &&
+    onlinePaymentProvider !== "paypal"
+  ) {
+    throw new OrderRepositoryError("Invalid online payment provider", 400);
+  }
+  if (orderType === "delivery" && paymentMethod === "cash_on_site") {
+    throw new OrderRepositoryError(
+      "Cash on site is only available for dine-in or pickup orders",
+      400,
+    );
+  }
+  if (paymentMethod === "cash_on_delivery" && orderType !== "delivery") {
+    throw new OrderRepositoryError(
+      "Cash on delivery is only available for delivery orders",
+      400,
+    );
+  }
+  if (paymentMethod === "cash_on_delivery" && !customerPhone) {
+    throw new OrderRepositoryError(
+      "A phone number is required for cash on delivery",
+      400,
+    );
+  }
+  const deliveryAddress =
+    orderType === "delivery"
+      ? validateDeliveryAddress(body.deliveryAddress)
+      : undefined;
   if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 50) {
     throw new OrderRepositoryError("Between 1 and 50 order items are required", 400);
   }
@@ -175,9 +249,41 @@ export function validateOrderInput(
     customerEmail: customerEmail || undefined,
     customerPhone: customerPhone || undefined,
     preferredChannel,
+    paymentMethod,
+    onlinePaymentProvider:
+      paymentMethod === "online"
+        ? onlinePaymentProvider === "paypal"
+          ? "paypal"
+          : "stripe"
+        : undefined,
     orderType,
+    deliveryAddress,
     tableNumber:
       typeof body.tableNumber === "string" ? body.tableNumber : undefined,
     items,
   };
+}
+
+export function validateDeliveryAddress(value: unknown) {
+  if (!value || typeof value !== "object") {
+    throw new OrderRepositoryError("A delivery address is required", 400);
+  }
+  const address = value as Record<string, unknown>;
+  const street = typeof address.street === "string" ? address.street.trim() : "";
+  const postalCode =
+    typeof address.postalCode === "string" ? address.postalCode.trim() : "";
+  const city = typeof address.city === "string" ? address.city.trim() : "";
+  if (street.length < 3 || street.length > 120) {
+    throw new OrderRepositoryError("Invalid delivery street", 400);
+  }
+  if (!/^[0-9]{5}$/.test(postalCode)) {
+    throw new OrderRepositoryError("A valid German postal code is required", 400);
+  }
+  if (city.length < 2 || city.length > 80) {
+    throw new OrderRepositoryError("Invalid delivery city", 400);
+  }
+  if (address.countryCode !== "DE") {
+    throw new OrderRepositoryError("Delivery is available only in Germany", 400);
+  }
+  return { street, postalCode, city, countryCode: "DE" as const };
 }

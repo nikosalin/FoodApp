@@ -1,37 +1,240 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FoodApp
 
-## Getting Started
+FoodApp is a restaurant ordering and administration platform for two family
+businesses in Germany. Customers can open a restaurant-specific menu from a QR
+code, place an order, and track it. Two administrator accounts can manage both
+restaurants, while orders, availability, payments, and analytics remain scoped
+to the selected restaurant.
 
-First, run the development server:
+The application supports a Supabase-backed local environment and a
+development fallback that runs without Supabase. Stripe checkout is ready for
+test credentials. PayPal has a server-side integration scaffold, but its
+customer checkout flow still needs to be connected.
+
+## Customer ordering
+
+- Public restaurant menu at `/menu/[slug]`.
+- Restaurant-specific categories, item cards, prices, and cart.
+- Dine-in/table, takeaway, and home-delivery fulfilment.
+- Restaurant-specific delivery-radius zones with minimum basket and delivery
+  fee rules.
+- Server-side German address geocoding and distance enforcement.
+- Guest checkout with an email address for confirmation and secure order
+  tracking.
+- Cash on site for dine-in and pickup orders.
+- Cash on delivery, enabled or disabled independently for each restaurant.
+- German delivery-address validation and a required phone number for cash on
+  delivery.
+- Stripe Elements checkout for online card payments.
+- Menu-authoritative pricing: the API recalculates prices and totals instead of
+  trusting browser-submitted amounts.
+- Printable A5 restaurant QR sheet, SVG download, and optional table number in
+  the menu URL.
+- Restaurant opening state is shown before checkout, and closed restaurants
+  reject new orders at the API boundary.
+
+Delivery-zone configuration, geocoding, enforcement, and fulfilment estimates
+are documented in [docs/delivery.md](docs/delivery.md).
+
+## Admin panel
+
+- Admin sign-in with Supabase Auth when configured, with a local development
+  fallback.
+- Two seeded administrators can access both seeded businesses and restaurants.
+- Restaurant selector keeps operational views and analytics restaurant-specific.
+- Pending and closed order queues with daily revenue totals.
+- Searchable closed-order archive with status, payment-method, and date filters.
+- Immutable per-order timeline for creation, status changes, edits, payment
+  actions, deletion, and restoration, including administrator attribution.
+- Soft-deleted order view with audited restoration.
+- Status workflow: pending, accepted, preparing, ready, completed, declined, and
+  cancelled.
+- Accept or decline incoming orders and progress accepted orders through
+  preparation.
+- Required ready/arrival estimate when accepting, visible to customers on the
+  tracking page.
+- Create orders directly from compact menu-item cards; server menu prices are
+  used automatically.
+- Edit or delete eligible manual orders without using the customer menu.
+- Record cash, external card, and manually entered sales for analytics without
+  creating an online payment.
+- Capture or cancel authorized online payments, issue refunds, and explicitly
+  record collection for cash-on-site and cash-on-delivery orders.
+- Per-restaurant weekly opening hours, manual open/close override, and early
+  closure until the next opening period.
+- Per-restaurant cash-on-delivery switch.
+- Editable per-restaurant delivery radii, minimums, fees, and shop geocoding.
+- Restaurant QR-code generation and print layout.
+- Audit records for sensitive order and payment changes.
+
+## Analytics
+
+Analytics always use the currently selected restaurant; revenue from the two
+businesses is not mixed unless a future combined view is added deliberately.
+Only completed orders contribute to sales metrics.
+
+- Today, last 7 days, and month time ranges.
+- Revenue, completed-order count, average order value, and peak sales hour.
+- Revenue wave/area graph over time.
+- Sales-by-hour chart for operational decisions.
+- Daily revenue and order totals.
+- Monday-to-Sunday analysis across the available completed-order history.
+- Weekday revenue, orders, number of observed dates, average revenue per
+  weekday, and average orders per weekday.
+- Best-performing weekday indicator.
+- Cash-paid, card-paid, and awaiting-payment revenue with order counts and
+  percentages for the selected period.
+- Monday-to-Sunday × 24-hour workload heatmap with average orders, paid
+  revenue, and the strongest recurring staffing window.
+- Dates and weekdays are calculated in `Europe/Berlin`.
+
+## Payments
+
+- Stripe PaymentIntents use manual capture: customer checkout authorizes the
+  amount, admin acceptance captures it, and decline cancels it.
+- This authorization-first flow avoids charging customers for ordinary
+  restaurant declines; refunds are reserved for cancellations after capture.
+- Stripe Connect configuration supports a separate connected account for each
+  business.
+- Stripe webhook verification and idempotent event processing.
+- Refund endpoint and admin action.
+- PayPal authorization/capture/void server adapter and business-specific
+  verified webhook routes.
+- Separate PayPal merchant credentials are supported for each business.
+- Offline methods include cash on site, cash on delivery, and admin-recorded
+  external card payments.
+- FoodApp never stores card numbers or CVC values.
+
+See [docs/payments.md](docs/payments.md) for lifecycle diagrams, environment
+variables, test cards, webhook setup, and remaining production steps.
+
+## Orders, API security, and notifications
+
+- Public order creation, guest tracking, admin order management, availability,
+  payment-action, and webhook APIs.
+- Idempotency keys protect order creation and payment operations from duplicate
+  requests.
+- Request validation, body-size limits, rate limiting, origin checks, and
+  restaurant-membership authorization.
+- Random guest tracking tokens are stored as hashes with expiry.
+- Supabase Row Level Security separates public, member, and service-role access.
+- Database transactions create orders, items, payment state, notification
+  outbox entries, idempotency records, and audit events together.
+- A provider-neutral outbox keeps order creation independent from email-provider
+  availability.
+- A protected worker sends one German order-confirmation email through Brevo
+  with exponential retries and crash recovery.
+- Authenticated Brevo webhooks record sent, delivered, bounced, and failed
+  states without retaining raw provider payloads.
+- The confirmation links to a guest-safe order page that refreshes every 15
+  seconds.
+
+See [docs/order-api.md](docs/order-api.md) for request and response details, and
+[docs/security-and-notifications-roadmap.md](docs/security-and-notifications-roadmap.md)
+for the production security and email plan. Provider setup and scheduler
+instructions are in
+[docs/email.md](docs/email.md).
+
+## Data layer
+
+Supabase migrations and seed data provide:
+
+- businesses, restaurants, profiles, and business memberships;
+- opening hours and restaurant availability overrides;
+- menu categories and menu items;
+- orders, order items, payments, and payment events;
+- notification outbox, idempotency records, and audit events;
+- transactional functions for creating and updating orders from menu items;
+- Row Level Security policies and service-only order operations.
+
+When Supabase environment variables are absent, the app uses an in-memory
+development repository. That mode is convenient for interface work but is not
+persistent or suitable for production.
+
+## Technology
+
+- Next.js 16 App Router, React 19, and TypeScript
+- Tailwind CSS
+- Supabase Auth and Postgres
+- Stripe Elements and Stripe Connect
+- PayPal REST adapter
+- Recharts
+- `qrcode.react`
+- i18next
+
+## Local setup
+
+Requirements: Node.js/npm, Docker, and the Supabase CLI.
+
+```bash
+npm install
+npm run supabase:start
+npm run supabase:status
+```
+
+Create `.env.local` from the examples in `config/`:
+
+```bash
+cp config/supabase.env.example .env.local
+```
+
+Replace the placeholder Supabase values with the local values printed by
+`npm run supabase:status`. Add the variables from
+`config/payments.env.example` when testing Stripe or PayPal and
+`config/email.env.example` when testing email. Add
+`config/delivery.env.example` for address lookup. Never commit real secret keys.
+
+Then start the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). The admin login is at
+[http://localhost:3000/admin/login](http://localhost:3000/admin/login).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Seeded local administrators
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Email | Password |
+| --- | --- |
+| `admin.one@foodapp.local` | `local-admin-one` |
+| `admin.two@foodapp.local` | `local-admin-two` |
 
-## Learn More
+If Supabase is not configured, the fallback development login is
+`admin@foodorder.com` / `admin123`.
 
-To learn more about Next.js, take a look at the following resources:
+For database reset, local email inspection, schema details, and deployment
+guidance, see
+[docs/supabase-local-development.md](docs/supabase-local-development.md).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Commands
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Create a production build |
+| `npm run start` | Run the production build |
+| `npm run lint` | Run ESLint |
+| `npx tsc --noEmit` | Type-check without emitting files |
+| `npm run interface` | Regenerate i18next resource types |
+| `npm run supabase:start` | Start the local Supabase stack |
+| `npm run supabase:stop` | Stop the local Supabase stack |
+| `npm run supabase:status` | Print local service URLs and keys |
+| `npm run supabase:reset` | Rebuild and reseed the local database |
+| `npm run supabase:lint` | Lint the local database schema |
 
-## Deploy on Vercel
+## Production checklist
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The following integrations deliberately remain configuration or finishing
+steps:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# FoodApp
+- supply live Stripe platform and connected-account credentials;
+- register and verify production Stripe webhooks;
+- connect the PayPal approval flow to the customer checkout UI and configure
+  each business merchant account;
+- verify the Brevo sender domain, configure the production webhook, and schedule
+  the email worker;
+- replace process-local rate limiting with a shared store for multi-instance
+  deployment;
+- configure production Supabase, SMTP, domains, secrets, and monitoring;
+- run full payment, refund, webhook, email, and role-based acceptance tests.

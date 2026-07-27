@@ -84,6 +84,15 @@ export const stripeProvider: PaymentProviderAdapter = {
       idempotencyKey,
     );
   },
+
+  async refund(businessId, providerPaymentId, idempotencyKey) {
+    await stripeRequest(
+      businessId,
+      "/refunds",
+      new URLSearchParams({ payment_intent: providerPaymentId }),
+      idempotencyKey,
+    );
+  },
 };
 
 export function verifyStripeWebhook(

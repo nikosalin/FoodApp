@@ -58,14 +58,6 @@ export function enqueueOrderNotification(
     createdAt: new Date().toISOString(),
   };
   outbox().push(record);
-
-  // Development adapter: model asynchronous provider delivery without making
-  // order creation depend on an external email or SMS service.
-  queueMicrotask(() => {
-    record.status = "sent";
-    record.sentAt = new Date().toISOString();
-    order.notificationStatus = "sent";
-  });
 }
 
 export function getNotificationOutbox(orderId?: string) {
