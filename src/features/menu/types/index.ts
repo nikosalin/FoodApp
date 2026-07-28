@@ -13,6 +13,7 @@ export interface MenuItemView {
   name: string;
   description: string;
   price: number;
+  restaurantId?: string;
 }
 
 export interface MenuCategoryView {

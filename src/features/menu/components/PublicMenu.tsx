@@ -697,9 +697,15 @@ export function PublicMenu({
           clientSecret={stripeStep.clientSecret}
           orderNumber={stripeStep.orderNumber}
           trackingToken={stripeStep.trackingToken}
-          onClose={() => {
+          onCancel={() => {
+            setStripeStep(undefined);
+          }}
+          onComplete={() => {
             setStripeStep(undefined);
             setCart({});
+            window.location.assign(
+              `/orders/track/${encodeURIComponent(stripeStep.trackingToken)}`,
+            );
           }}
         />
       )}

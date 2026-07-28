@@ -1,7 +1,13 @@
 import type { MenuItemView } from "../types";
 import { AddToCartButton } from "@/features/cart/components/AddToCartButton";
 
-export function MenuItemRow({ id, name, description, price }: MenuItemView) {
+export function MenuItemRow({
+  id,
+  name,
+  description,
+  price,
+  restaurantId = "restaurant-1",
+}: MenuItemView) {
   return (
     <div className="flex items-start justify-between gap-4 border-b border-olive/20 py-4">
       <div>
@@ -10,7 +16,12 @@ export function MenuItemRow({ id, name, description, price }: MenuItemView) {
       </div>
       <div className="flex shrink-0 flex-col items-end gap-2">
         <span className="font-bold text-lemon">€ {price.toFixed(2)}</span>
-        <AddToCartButton id={id} name={name} price={price} />
+        <AddToCartButton
+          id={id}
+          name={name}
+          price={price}
+          restaurantId={restaurantId}
+        />
       </div>
     </div>
   );

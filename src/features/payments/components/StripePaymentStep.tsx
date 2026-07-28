@@ -14,13 +14,15 @@ export function StripePaymentStep({
   clientSecret,
   orderNumber,
   trackingToken,
-  onClose,
+  onCancel,
+  onComplete,
 }: {
   publishableKey: string;
   clientSecret: string;
   orderNumber: string;
   trackingToken: string;
-  onClose: () => void;
+  onCancel: () => void;
+  onComplete: () => void;
 }) {
   const stripe = useMemo(() => loadStripe(publishableKey), [publishableKey]);
 
@@ -43,7 +45,11 @@ export function StripePaymentStep({
             locale: "de",
           }}
         >
-          <PaymentForm trackingToken={trackingToken} onClose={onClose} />
+          <PaymentForm
+            trackingToken={trackingToken}
+            onCancel={onCancel}
+            onComplete={onComplete}
+          />
         </Elements>
       </div>
     </div>
@@ -52,10 +58,12 @@ export function StripePaymentStep({
 
 function PaymentForm({
   trackingToken,
-  onClose,
+  onCancel,
+  onComplete,
 }: {
   trackingToken: string;
-  onClose: () => void;
+  onCancel: () => void;
+  onComplete: () => void;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -72,7 +80,7 @@ function PaymentForm({
       elements,
       redirect: "if_required",
       confirmParams: {
-        return_url: `${window.location.origin}/api/orders/track/${trackingToken}`,
+        return_url: `${window.location.origin}/orders/track/${trackingToken}`,
       },
     });
     if (result.error) {
@@ -93,7 +101,7 @@ function PaymentForm({
         </p>
         <button
           type="button"
-          onClick={onClose}
+          onClick={onComplete}
           className="mt-4 rounded-xl bg-emerald-800 px-4 py-2 font-bold text-white"
         >
           Fertig
@@ -114,7 +122,7 @@ function PaymentForm({
         <button
           type="button"
           disabled={busy}
-          onClick={onClose}
+          onClick={onCancel}
           className="h-12 flex-1 rounded-xl border border-stone-300 font-bold"
         >
           Abbrechen
