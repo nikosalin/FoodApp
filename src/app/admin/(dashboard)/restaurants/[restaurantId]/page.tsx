@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { RestaurantOrderOverview } from "@/features/admin/components/RestaurantOrderOverview";
 
 export const metadata: Metadata = {
-  title: "Restaurant Orders | FoodApp Admin",
+  title: "Restaurant Orders | Der Schöne Grieche Admin",
 };
 
 export default async function RestaurantOrdersPage({

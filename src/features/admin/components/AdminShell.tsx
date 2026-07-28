@@ -55,7 +55,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <Shield className="size-5" />
             </span>
             <div>
-              <p className="font-bold">FoodApp Admin</p>
+              <p className="font-bold">Der Schöne Grieche Admin</p>
               <p className="text-xs text-stone-500">{session.email}</p>
             </div>
           </div>

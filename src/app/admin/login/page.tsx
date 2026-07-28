@@ -3,7 +3,7 @@ import { AdminLoginForm } from "@/features/admin/components/AdminLoginForm";
 import { isSupabaseConfigured } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = {
-  title: "Admin Login | FoodApp",
+  title: "Admin Login | Der Schöne Grieche",
 };
 
 export default function AdminLoginPage() {
