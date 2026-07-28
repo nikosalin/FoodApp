@@ -59,6 +59,9 @@ export default interface Resources {
     }
   },
   "home": {
+    "footer": {
+      "title": "Check our menu."
+    },
     "header": {
       "title": "Choose your favorite"
     },

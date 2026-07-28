@@ -12,7 +12,7 @@ export default function Home() {
       <Navbar />
       <CategoryGrid />
       <FeaturedItemsList />
-      <LocationInfo />
+      {/* <LocationInfo /> */}
       <Footer />
     </main>
   );
