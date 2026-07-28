@@ -1,0 +1,78 @@
+{
+  "pageTitle": "Our Menu",
+  "addButton": "Add",
+  "gyros": {
+    "label": "GYROS",
+    "items": {
+      "porkGyrosPita": {
+        "name": "Pork Gyros Pita",
+        "description": "In pita with fries, tomato, onion, ketchup & mustard."
+      },
+      "chickenGyrosPita": {
+        "name": "Chicken Gyros Pita",
+        "description": "In pita with fries, tomato, onion, ketchup & mustard."
+      },
+      "epicGyros": {
+        "name": "Epic Gyros",
+        "description": "Double meat, extra tzatziki, house special sauce."
+      }
+    }
+  },
+  "souvlaki": {
+    "label": "SOUVLAKI",
+    "items": {
+      "porkSouvlakiPita": {
+        "name": "Pork Souvlaki Pita",
+        "description": "Charcoal-grilled skewer, pita, fries, tomato, onion."
+      },
+      "clubSouvlaki": {
+        "name": "Club Souvlaki",
+        "description": "Triple pita stack, bacon, cheese, yogurt sauce, fries."
+      }
+    }
+  },
+  "pites": {
+    "label": "PITAS",
+    "items": {
+      "chickenPita": {
+        "name": "Chicken Pita",
+        "description": "Grilled chicken, fresh vegetables, house sauce."
+      }
+    }
+  },
+  "merides": {
+    "label": "PLATTERS",
+    "items": {
+      "gyrosPorkPlate": {
+        "name": "Pork Gyros Platter",
+        "description": "Served with fries, lettuce, and a dip of your choice."
+      },
+      "gentleGiant": {
+        "name": "Gentle Giant",
+        "description": "Generous mixed-meat platter for the very hungry."
+      }
+    }
+  },
+  "salates": {
+    "label": "SALADS",
+    "items": {
+      "greekSalad": {
+        "name": "Greek Salad",
+        "description": "Tomato, cucumber, onion, green pepper, feta, olives."
+      },
+      "caesarSalad": {
+        "name": "Caesar",
+        "description": "Lettuce, croutons, chicken fillet, bacon, parmesan."
+      }
+    }
+  },
+  "patates": {
+    "label": "FRIES",
+    "items": {
+      "classicFries": {
+        "name": "Classic Fries",
+        "description": "Crispy fries with a dip of your choice."
+      }
+    }
+  }
+}

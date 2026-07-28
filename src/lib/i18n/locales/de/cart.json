@@ -1,0 +1,8 @@
+{
+  "cart": {
+    "title": "Dein Warenkorb",
+    "checkoutButton": "Zur Kasse",
+    "emptyLabel": "Dein Warenkorb ist leer.",
+    "backToMenu": "Zur Speisekarte"
+  }
+}

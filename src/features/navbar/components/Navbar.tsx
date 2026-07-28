@@ -2,6 +2,7 @@ import { Logo } from "./Logo";
 import { NavLinks } from "./NavLinks";
 import { MobileMenu } from "./MobileMenu";
 import { LanguageSwitcher } from "@/components/languageSwitcher";
+import { CartBadge } from "@/features/cart/components/CartBadge";
 
 export function Navbar() {
   return (
@@ -13,8 +14,13 @@ export function Navbar() {
           <NavLinks />
         </nav>
 
-        <MobileMenu />
-        <LanguageSwitcher />
+        <div className="flex items-center gap-3">
+          <LanguageSwitcher />
+          <CartBadge />
+          <div className="md:hidden">
+            <MobileMenu />
+          </div>
+        </div>
       </div>
     </header>
   );

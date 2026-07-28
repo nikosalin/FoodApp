@@ -1,0 +1,78 @@
+{
+  "pageTitle": "Unsere Speisekarte",
+  "addButton": "Hinzufügen",
+  "gyros": {
+    "label": "GYROS",
+    "items": {
+      "porkGyrosPita": {
+        "name": "Gyros Pita mit Schweinefleisch",
+        "description": "Im Pitabrot mit Pommes, Tomaten, Zwiebeln, Ketchup und Senf."
+      },
+      "chickenGyrosPita": {
+        "name": "Gyros Pita mit Hähnchen",
+        "description": "Im Pitabrot mit Pommes, Tomaten, Zwiebeln, Ketchup und Senf."
+      },
+      "epicGyros": {
+        "name": "Epic Gyros",
+        "description": "Doppelte Portion Fleisch, extra Tzatziki und unsere Haussauce."
+      }
+    }
+  },
+  "souvlaki": {
+    "label": "SOUVLAKI",
+    "items": {
+      "porkSouvlakiPita": {
+        "name": "Souvlaki Pita mit Schweinefleisch",
+        "description": "Holzkohlegegrillter Fleischspieß im Pitabrot mit Pommes, Tomaten und Zwiebeln."
+      },
+      "clubSouvlaki": {
+        "name": "Club Souvlaki",
+        "description": "Dreifaches Pitabrot mit Bacon, Käse, Joghurtsauce und Pommes."
+      }
+    }
+  },
+  "pites": {
+    "label": "PITAS",
+    "items": {
+      "chickenPita": {
+        "name": "Hähnchen-Pita",
+        "description": "Gegrilltes Hähnchen mit frischem Gemüse und Haussauce."
+      }
+    }
+  },
+  "merides": {
+    "label": "TELLERGERICHTE",
+    "items": {
+      "gyrosPorkPlate": {
+        "name": "Gyros-Teller mit Schweinefleisch",
+        "description": "Serviert mit Pommes, Salat und einem Dip nach Wahl."
+      },
+      "gentleGiant": {
+        "name": "Gentle Giant",
+        "description": "Große gemischte Fleischplatte für den richtig großen Hunger."
+      }
+    }
+  },
+  "salates": {
+    "label": "SALATE",
+    "items": {
+      "greekSalad": {
+        "name": "Griechischer Salat",
+        "description": "Tomaten, Gurken, Zwiebeln, Paprika, Feta und Oliven."
+      },
+      "caesarSalad": {
+        "name": "Caesar Salat",
+        "description": "Blattsalat, Croutons, Hähnchenbrust, Bacon und Parmesan."
+      }
+    }
+  },
+  "patates": {
+    "label": "POMMES",
+    "items": {
+      "classicFries": {
+        "name": "Klassische Pommes",
+        "description": "Knusprige Pommes mit einem Dip nach Wahl."
+      }
+    }
+  }
+}

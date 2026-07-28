@@ -1,0 +1,8 @@
+{
+  "cart": {
+    "title": "Your Cart",
+    "checkoutButton": "Proceed to checkout",
+    "emptyLabel": "Your cart is empty.",
+    "backToMenu": "Browse the menu"
+  }
+}
