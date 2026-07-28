@@ -520,7 +520,7 @@ export function RestaurantOrderOverview({
                 onDelete={async () => {
                   if (
                     !window.confirm(
-                      `Move order #${order.orderNumber} to deleted orders?`,
+                      `Move order ${order.orderNumber} to deleted orders?`,
                     )
                   ) {
                     return;
@@ -543,7 +543,7 @@ export function RestaurantOrderOverview({
                   }
                 }}
                 onRefund={() => {
-                  if (!window.confirm(`Refund order #${order.orderNumber}?`)) {
+                  if (!window.confirm(`Refund order ${order.orderNumber}?`)) {
                     return;
                   }
                   void runOrderMutation(order.id, () =>
@@ -646,7 +646,7 @@ function AcceptOrderModal({
   const [estimateBaseTime] = useState(() => Date.now());
 
   return (
-    <AdminModal title={`Accept #${order.orderNumber}`} onClose={onClose}>
+    <AdminModal title={`Accept ${order.orderNumber}`} onClose={onClose}>
       <p className="text-sm text-stone-600">
         Give the customer a realistic{" "}
         {order.orderType === "delivery" ? "arrival" : "ready"} estimate.
@@ -718,7 +718,7 @@ function DeletedOrderCard({
         <div>
           <div className="flex flex-wrap items-center gap-3">
             <Trash2 className="size-5 text-stone-500" />
-            <h2 className="text-lg font-black">Order #{order.orderNumber}</h2>
+            <h2 className="text-lg font-black">Order {order.orderNumber}</h2>
             <AdminBadge>{order.status}</AdminBadge>
           </div>
           <p className="mt-2 text-sm text-stone-500">
@@ -765,7 +765,7 @@ function OrderHistoryModal({
   onClose: () => void;
 }) {
   return (
-    <AdminModal title={`History · #${order.orderNumber}`} onClose={onClose}>
+    <AdminModal title={`History · ${order.orderNumber}`} onClose={onClose}>
       {loading ? (
         <p className="py-8 text-center text-stone-500">Loading history…</p>
       ) : events.length === 0 ? (
@@ -941,7 +941,7 @@ function OrderCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-3">
             <ShoppingBag className="size-5 text-amber-700" />
-            <h2 className="text-lg font-black">Order #{order.orderNumber}</h2>
+            <h2 className="text-lg font-black">Order {order.orderNumber}</h2>
             <AdminBadge tone={statusTone}>{order.status}</AdminBadge>
           </div>
           <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-stone-500">
@@ -1208,7 +1208,7 @@ function DeclineOrderModal({
 }) {
   const [reason, setReason] = useState("");
   return (
-    <AdminModal title={`Decline order #${order.orderNumber}`} onClose={onClose}>
+    <AdminModal title={`Decline order ${order.orderNumber}`} onClose={onClose}>
       <form
         className="space-y-4"
         onSubmit={async (event) => {

@@ -62,22 +62,38 @@ export function getOrdersForRestaurant(restaurantId: string) {
     );
 }
 
-function orderNumber() {
-  return `ORD-${Date.now().toString(36).toUpperCase()}-${crypto
-    .randomUUID()
-    .slice(0, 4)
-    .toUpperCase()}`;
+const businessDateFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Europe/Berlin",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+function orderNumber(restaurantId: string, now: Date) {
+  const businessDate = businessDateFormatter.format(now);
+  const lastNumber = memory().orders.reduce((highest, order) => {
+    if (
+      order.restaurantId !== restaurantId ||
+      !/^#\d+$/.test(order.orderNumber) ||
+      businessDateFormatter.format(new Date(order.createdAt)) !== businessDate
+    ) {
+      return highest;
+    }
+    return Math.max(highest, Number(order.orderNumber.slice(1)));
+  }, -1);
+  return `#${lastNumber + 1}`;
 }
 
 export function createOrder(
   input: OrderInput,
   options?: { contactVerified?: boolean },
 ) {
-  const now = new Date().toISOString();
+  const createdAt = new Date();
+  const now = createdAt.toISOString();
   const order: RestaurantOrder = {
     id: crypto.randomUUID(),
     restaurantId: input.restaurantId,
-    orderNumber: orderNumber(),
+    orderNumber: orderNumber(input.restaurantId, createdAt),
     orderType: input.orderType,
     deliveryAddress: input.deliveryAddress
       ? structuredClone(input.deliveryAddress)

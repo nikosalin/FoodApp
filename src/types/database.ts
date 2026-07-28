@@ -233,6 +233,8 @@ export type Database = {
           restaurant_id: string;
           business_id: string;
           order_number: string;
+          business_date: string | null;
+          daily_order_number: number | null;
           source: Database["public"]["Enums"]["order_source"];
           order_type: Database["public"]["Enums"]["order_type"];
           table_number: string | null;
@@ -264,6 +266,8 @@ export type Database = {
           restaurant_id: string;
           business_id: string;
           order_number?: string;
+          business_date?: string | null;
+          daily_order_number?: number | null;
           source?: Database["public"]["Enums"]["order_source"];
           order_type: Database["public"]["Enums"]["order_type"];
           table_number?: string | null;

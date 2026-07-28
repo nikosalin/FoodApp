@@ -10,18 +10,10 @@ import {
   primaryButtonClassName,
 } from "./AdminUi";
 
-export function AdminLoginForm({
-  supabaseConfigured,
-}: {
-  supabaseConfigured: boolean;
-}) {
+export function AdminLoginForm() {
   const router = useRouter();
-  const [email, setEmail] = useState(
-    supabaseConfigured ? "admin.one@foodapp.local" : "admin@foodorder.com",
-  );
-  const [password, setPassword] = useState(
-    supabaseConfigured ? "local-admin-one" : "admin123",
-  );
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -116,21 +108,6 @@ export function AdminLoginForm({
             </button>
           </form>
 
-          <div className="mt-6 rounded-xl bg-amber-50 p-4 text-sm text-stone-700">
-            <p className="font-semibold">
-              {supabaseConfigured ? "Local Supabase credentials" : "Demo credentials"}
-            </p>
-            <p>
-              {supabaseConfigured
-                ? "admin.one@foodapp.local / local-admin-one"
-                : "admin@foodorder.com / admin123"}
-            </p>
-            <p className="mt-2 text-xs text-stone-500">
-              {supabaseConfigured
-                ? "Authentication and restaurant access come from Supabase."
-                : "Configure Supabase to replace the temporary local session."}
-            </p>
-          </div>
         </AdminCard>
       </div>
     </main>
