@@ -17,8 +17,8 @@ export async function generateMetadata({
   );
   return {
     title: restaurant
-      ? `${restaurant.name} | Speisekarte`
-      : "Speisekarte | FoodApp",
+      ? `${restaurant.name} | Der Schöne Grieche`
+      : "Der Schöne Grieche",
   };
 }
 
