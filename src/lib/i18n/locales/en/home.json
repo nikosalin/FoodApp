@@ -14,5 +14,13 @@
     "tagline": "The taste of Thessaloniki's street food, made fresh every day.",
     "discount": "10% off every order over €20",
     "orderButton": "Order online"
+  },
+  "appQr": {
+    "badge": "Right on your phone",
+    "title": "Scan, open the menu, and order.",
+    "description": "Open your smartphone camera and point it at the QR code. You'll be taken directly to The Greeks.",
+    "openButton": "Open app",
+    "ariaLabel": "Open The Greeks",
+    "qrTitle": "QR code for The Greeks"
   }
 }

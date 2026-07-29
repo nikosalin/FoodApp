@@ -59,6 +59,14 @@ export default interface Resources {
     }
   },
   "home": {
+    "appQr": {
+      "ariaLabel": "Open The Greeks",
+      "badge": "Right on your phone",
+      "description": "Open your smartphone camera and point it at the QR code. You'll be taken directly to The Greeks.",
+      "openButton": "Open app",
+      "qrTitle": "QR code for The Greeks",
+      "title": "Scan, open the menu, and order."
+    },
     "footer": {
       "title": "Check our menu."
     },
