@@ -65,6 +65,13 @@ export default interface Resources {
     "header": {
       "title": "Choose your favorite"
     },
+    "hero": {
+      "discount": "10% off every order over €20",
+      "eyebrow": "GYROS · GRILL · SOUVLAKI",
+      "orderButton": "Order online",
+      "tagline": "The taste of Thessaloniki's street food, made fresh every day.",
+      "title": "THE GREEKS"
+    },
     "navbar": {
       "Logo": "The Greeks"
     }

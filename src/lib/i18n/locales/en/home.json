@@ -7,5 +7,12 @@
   },
   "footer": {
     "title": "Check our menu."
+  },
+  "hero": {
+    "eyebrow": "GYROS · GRILL · SOUVLAKI",
+    "title": "THE GREEKS",
+    "tagline": "The taste of Thessaloniki's street food, made fresh every day.",
+    "discount": "10% off every order over €20",
+    "orderButton": "Order online"
   }
 }
