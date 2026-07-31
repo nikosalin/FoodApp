@@ -1,33 +1,33 @@
 {
-  "gyros": {
-    "title": "GYROS",
-    "description": "Pork or chicken, freshly roasted on a spit",
-    "imageAlt": "Gyros wrap"
+  "gyrosPita": {
+    "title": "GYROS & PITA",
+    "description": "Fresh gyros and warm pita, made to order",
+    "imageAlt": "Gyros pita wrap"
   },
-  "souvlaki": {
-    "title": "SOUVLAKI",
-    "description": "Charcoal grilled skewers, just like at the taverna",
-    "imageAlt": "Souvlaki skewers"
+  "grill": {
+    "title": "FROM THE GRILL",
+    "description": "Charcoal-grilled classics, straight off the fire",
+    "imageAlt": "Grilled skewers"
   },
-  "pites": {
-    "title": "PITAS",
-    "description": "Freshly baked pita filled with love",
-    "imageAlt": "Pita wrap"
-  },
-  "merides": {
-    "title": "PLATTERS",
-    "description": "A hearty plate for the hungry",
-    "imageAlt": "Plated portion"
-  },
-  "salates": {
+  "salads": {
     "title": "SALADS",
     "description": "Fresh sides for every meal",
     "imageAlt": "Greek salad"
   },
-  "patates": {
-    "title": "FRIES",
-    "description": "Classic, with cheese or your favorite dip",
+  "sides": {
+    "title": "SIDES",
+    "description": "Fries and more, classic or loaded",
     "imageAlt": "Fries"
+  },
+  "drinksNonAlcoholic": {
+    "title": "SOFT DRINKS",
+    "description": "Cold drinks to go with your meal",
+    "imageAlt": "Soft drinks"
+  },
+  "drinksAlcoholic": {
+    "title": "BEER & WINE",
+    "description": "18+ · A cold beer or a glass of wine",
+    "imageAlt": "Beer and wine"
   },
   "epic-gyros": {
     "eyebrow": "TASTE THE",

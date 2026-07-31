@@ -1,33 +1,33 @@
 {
-  "gyros": {
-    "title": "GYROS",
-    "description": "Schweinefleisch oder Hähnchen, frisch am Spieß gegrillt",
-    "imageAlt": "Gyros-Pita"
+  "gyrosPita": {
+    "title": "GYROS & PITA",
+    "description": "Frisches Gyros und warme Pita, frisch zubereitet",
+    "imageAlt": "Gyros-Pita-Wrap"
   },
-  "souvlaki": {
-    "title": "SOUVLAKI",
-    "description": "Frisch gegrillte Fleischspieße vom Holzkohlegrill – wie in einer griechischen Taverne",
-    "imageAlt": "Souvlaki-Spieße"
+  "grill": {
+    "title": "VOM GRILL",
+    "description": "Klassiker vom Holzkohlegrill, direkt vom Feuer",
+    "imageAlt": "Gegrillte Spieße"
   },
-  "pites": {
-    "title": "PITAS",
-    "description": "Frisch gebackene Pita, gefüllt mit deinen Lieblingszutaten",
-    "imageAlt": "Gefüllte Pita"
-  },
-  "merides": {
-    "title": "TELLERGERICHTE",
-    "description": "Großzügige Portionen mit authentischem griechischem Geschmack",
-    "imageAlt": "Griechischer Teller"
-  },
-  "salates": {
+  "salads": {
     "title": "SALATE",
-    "description": "Frische Salate als perfekte Beilage zu jedem Gericht",
+    "description": "Frische Beilagen zu jedem Gericht",
     "imageAlt": "Griechischer Salat"
   },
-  "patates": {
-    "title": "POMMES",
-    "description": "Knusprige Pommes – klassisch, mit Käse oder deinem Lieblingsdip",
-    "imageAlt": "Pommes frites"
+  "sides": {
+    "title": "BEILAGEN",
+    "description": "Pommes und mehr, klassisch oder aufgepeppt",
+    "imageAlt": "Pommes"
+  },
+  "drinksNonAlcoholic": {
+    "title": "ALKOHOLFREIE GETRÄNKE",
+    "description": "Kalte Getränke zu deinem Essen",
+    "imageAlt": "Alkoholfreie Getränke"
+  },
+  "drinksAlcoholic": {
+    "title": "BIER & WEIN",
+    "description": "18+ · Ein kaltes Bier oder ein Glas Wein",
+    "imageAlt": "Bier und Wein"
   },
   "epic-gyros": {
     "eyebrow": "PROBIER DAS",

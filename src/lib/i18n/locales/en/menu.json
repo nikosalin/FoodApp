@@ -1,77 +1,197 @@
 {
   "pageTitle": "Our Menu",
   "addButton": "Add",
-  "gyros": {
-    "label": "GYROS",
-    "items": {
-      "porkGyrosPita": {
-        "name": "Pork Gyros Pita",
-        "description": "In pita with fries, tomato, onion, ketchup & mustard."
-      },
-      "chickenGyrosPita": {
-        "name": "Chicken Gyros Pita",
-        "description": "In pita with fries, tomato, onion, ketchup & mustard."
-      },
-      "epicGyros": {
-        "name": "Epic Gyros",
-        "description": "Double meat, extra tzatziki, house special sauce."
-      }
-    }
-  },
-  "souvlaki": {
-    "label": "SOUVLAKI",
-    "items": {
-      "porkSouvlakiPita": {
-        "name": "Pork Souvlaki Pita",
-        "description": "Charcoal-grilled skewer, pita, fries, tomato, onion."
-      },
-      "clubSouvlaki": {
-        "name": "Club Souvlaki",
-        "description": "Triple pita stack, bacon, cheese, yogurt sauce, fries."
-      }
-    }
-  },
-  "pites": {
-    "label": "PITAS",
-    "items": {
-      "chickenPita": {
-        "name": "Chicken Pita",
-        "description": "Grilled chicken, fresh vegetables, house sauce."
-      }
-    }
-  },
-  "merides": {
-    "label": "PLATTERS",
-    "items": {
-      "gyrosPorkPlate": {
-        "name": "Pork Gyros Platter",
-        "description": "Served with fries, lettuce, and a dip of your choice."
-      },
-      "gentleGiant": {
-        "name": "Gentle Giant",
-        "description": "Generous mixed-meat platter for the very hungry."
-      }
-    }
-  },
-  "salates": {
+  "salads": {
     "label": "SALADS",
     "items": {
-      "greekSalad": {
-        "name": "Greek Salad",
-        "description": "Tomato, cucumber, onion, green pepper, feta, olives."
+      "fetaSalad": {
+        "name": "Feta Salad",
+        "description": "Creamy Greek feta, served simply."
       },
-      "caesarSalad": {
-        "name": "Caesar",
-        "description": "Lettuce, croutons, chicken fillet, bacon, parmesan."
+      "tzatzikiPortion": {
+        "name": "Tzatziki Portion",
+        "description": "Cool yogurt, cucumber, and garlic dip."
+      },
+      "whiteCabbageSalad": {
+        "name": "White Cabbage Salad",
+        "description": "Crisp, lightly dressed cabbage slaw."
+      },
+      "mixedSalad": {
+        "name": "Mixed Salad",
+        "description": "A fresh mix of seasonal vegetables."
+      },
+      "farmersSalad": {
+        "name": "Farmer's Salad",
+        "description": "Tomato, cucumber, onion, feta, and olives."
+      },
+      "peperoni": {
+        "name": "Pepperoncini",
+        "description": "Pickled Greek peppers, mild and tangy."
+      },
+      "olives": {
+        "name": "Olives",
+        "description": "A bowl of marinated Greek olives."
       }
     }
   },
-  "patates": {
-    "label": "FRIES",
+  "gyrosPita": {
+    "label": "GYROS & PITA",
     "items": {
-      "classicFries": {
-        "name": "Classic Fries",
-        "description": "Crispy fries with a dip of your choice."
+      "gyrosPlate": {
+        "name": "Gyros Plate",
+        "description": "Served with a side of your choice."
+      },
+      "vegetarianPita": {
+        "name": "Vegetarian Pita",
+        "description": "Warm pita filled with fresh salad."
+      },
+      "gyrosPitaSaloniki": {
+        "name": "Gyros Pita Saloniki",
+        "description": "With cabbage slaw and tzatziki."
+      },
+      "gyrosPitaWithSalad": {
+        "name": "Gyros Pita with Salad",
+        "description": "Classic gyros pita, topped with fresh salad."
+      },
+      "gyrosPitaSpecial": {
+        "name": "Gyros Pita Special, Greek Style",
+        "description": "Our house special preparation."
+      },
+      "gyrosPlain": {
+        "name": "Gyros, Plain",
+        "description": "Just gyros and onions, no extras."
+      },
+      "pitaNoGyros": {
+        "name": "Pita with Fries & Tzatziki",
+        "description": "No gyros — just pita, fries, and tzatziki."
+      },
+      "gyrosBox": {
+        "name": "Gyros Box",
+        "description": "Gyros, fries, onions, and a sauce of your choice."
+      },
+      "gyrosMetaxa": {
+        "name": "Gyros Metaxa",
+        "description": "Baked with feta and onions, served with salad or fries."
+      },
+      "gyrosMetaxaRiceNoodles": {
+        "name": "Gyros Metaxa with Rice Noodles",
+        "description": "Rice noodles, baked with feta and onions."
+      }
+    }
+  },
+  "grill": {
+    "label": "FROM THE GRILL",
+    "items": {
+      "bifteki": {
+        "name": "Bifteki",
+        "description": "Grilled beef patty filled with cheese."
+      },
+      "porkSouvlaki": {
+        "name": "Pork Souvlaki",
+        "description": "Two charcoal-grilled skewers."
+      },
+      "soutzoukakia": {
+        "name": "Soutzoukakia",
+        "description": "Two spiced, oblong meatballs."
+      },
+      "grillPlatter": {
+        "name": "Grill Platter",
+        "description": "Gyros, one souvlaki skewer, and one soutzoukaki."
+      }
+    }
+  },
+  "sides": {
+    "label": "SIDES",
+    "items": {
+      "fries": { "name": "Fries", "description": "Classic crispy fries." },
+      "bratwurst": {
+        "name": "Bratwurst",
+        "description": "Grilled German sausage."
+      },
+      "currywurst": {
+        "name": "Currywurst",
+        "description": "Sliced sausage in curry-spiced ketchup."
+      },
+      "currywurstFries": {
+        "name": "Currywurst with Fries",
+        "description": "Our currywurst, served with fries."
+      },
+      "plainPitaBread": {
+        "name": "Plain Pita Bread",
+        "description": "With olive oil and oregano."
+      },
+      "riceNoodles": {
+        "name": "Rice Noodles",
+        "description": "A simple side of rice noodles."
+      }
+    }
+  },
+  "sauces": {
+    "label": "SAUCES",
+    "items": {
+      "ketchup": {
+        "name": "Ketchup",
+        "description": "Classic tomato ketchup."
+      },
+      "mayonnaise": { "name": "Mayonnaise", "description": "Mild and creamy." },
+      "saladMayo": {
+        "name": "Salad Mayo",
+        "description": "A lighter, tangy mayonnaise."
+      },
+      "tzatzikiSauce": {
+        "name": "Tzatziki Sauce",
+        "description": "Yogurt, cucumber, and garlic."
+      },
+      "curryKetchup": {
+        "name": "Curry Ketchup",
+        "description": "Ketchup with a curry spice blend."
+      },
+      "mustard": { "name": "Mustard", "description": "Classic yellow mustard." }
+    }
+  },
+  "drinksNonAlcoholic": {
+    "label": "SOFT DRINKS",
+    "items": {
+      "stillWater": {
+        "name": "Still Water, 0.5L",
+        "description": "Natural still mineral water."
+      },
+      "cola1l": {
+        "name": "Coca-Cola, 1L",
+        "description": "Contains caffeine."
+      },
+      "cola033": {
+        "name": "Coca-Cola, 0.33L",
+        "description": "Contains caffeine."
+      },
+      "fanta1l": {
+        "name": "Fanta, 1L",
+        "description": "Orange-flavored soft drink."
+      },
+      "sprite033": {
+        "name": "Sprite, 0.33L",
+        "description": "Lemon-lime soft drink."
+      }
+    }
+  },
+  "drinksAlcoholic": {
+    "label": "BEER & WINE (18+)",
+    "items": {
+      "koelsch": {
+        "name": "Kölsch Beer, 0.33L",
+        "description": "Light, crisp German lager style."
+      },
+      "mythos": {
+        "name": "Mythos Beer, 0.33L",
+        "description": "Greek lager beer."
+      },
+      "retsina": {
+        "name": "Retsina, 0.5L",
+        "description": "Traditional Greek white wine with a pine resin note."
+      },
+      "ouzo": {
+        "name": "Ouzo, 0.05L",
+        "description": "Traditional Greek anise spirit."
       }
     }
   }
