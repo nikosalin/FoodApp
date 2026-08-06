@@ -8,15 +8,8 @@ import { CreditCard, ShoppingBag, Utensils } from "lucide-react";
 import { useCartStore } from "@/features/cart/store/useCartStore";
 import { getCartTotal } from "@/features/cart/lib/selectors";
 import { StripePaymentStep } from "@/features/payments/components/StripePaymentStep";
-
-type OrderType = "takeaway" | "table";
-type PaymentMethod = "online" | "cash_on_site";
-
-type StripeStep = {
-  clientSecret: string;
-  orderNumber: string;
-  trackingToken: string;
-};
+import { OrderType, PaymentMethod, StripeStep } from "../types";
+import { useTranslation } from "react-i18next";
 
 export function CheckoutPage({
   stripePublishableKey,
@@ -29,8 +22,7 @@ export function CheckoutPage({
   const clearCart = useCartStore((state) => state.clearCart);
   const idempotencyKey = useRef(crypto.randomUUID());
   const [orderType, setOrderType] = useState<OrderType>("takeaway");
-  const [paymentMethod, setPaymentMethod] =
-    useState<PaymentMethod>("online");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("online");
   const [tableNumber, setTableNumber] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -41,6 +33,8 @@ export function CheckoutPage({
   const [paymentOpen, setPaymentOpen] = useState(false);
 
   const total = getCartTotal(items);
+
+  const { t } = useTranslation("checkout");
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -88,14 +82,12 @@ export function CheckoutPage({
         };
       };
       if (!response.ok || !body.order) {
-        throw new Error(
-          body.message ?? body.error ?? "The order could not be created.",
-        );
+        throw new Error(body.message ?? body.error ?? t("errors.orderFailed"));
       }
 
       if (paymentMethod === "online") {
         if (!stripePublishableKey || !body.payment?.clientSecret) {
-          throw new Error("Stripe is not configured for this restaurant.");
+          throw new Error(t("errors.stripeNotConfigured"));
         }
         setStripeStep({
           clientSecret: body.payment.clientSecret,
@@ -112,7 +104,7 @@ export function CheckoutPage({
       );
     } catch (reason) {
       setError(
-        reason instanceof Error ? reason.message : "The order failed.",
+        reason instanceof Error ? reason.message : t("errors.orderFailed"),
       );
     } finally {
       setBusy(false);
@@ -123,14 +115,12 @@ export function CheckoutPage({
     return (
       <section className="mx-auto max-w-2xl px-4 py-24 text-center">
         <h1 className="text-3xl font-black text-pita">Your cart is empty</h1>
-        <p className="mt-3 text-pita/70">
-          Add something from the menu before checking out.
-        </p>
+        <p className="mt-3 text-pita/70">{t("emptyCart.title")}</p>
         <Link
           href="/menu"
           className="mt-6 inline-flex rounded-full bg-lemon px-6 py-3 font-bold text-char"
         >
-          Browse the menu
+          {t("emptyCart.browseMenu")}
         </Link>
       </section>
     );
@@ -145,33 +135,31 @@ export function CheckoutPage({
         <div className="space-y-6">
           <div>
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-lemon">
-              Checkout
+              {t("eyebrow")}
             </p>
-            <h1 className="mt-2 text-4xl font-black text-pita">
-              Complete your order
-            </h1>
+            <h1 className="mt-2 text-4xl font-black text-pita">{t("title")}</h1>
           </div>
 
           <CheckoutSection title="Order type">
             <div className="grid gap-3 sm:grid-cols-2">
               <ChoiceButton
                 active={orderType === "takeaway"}
-                label="Takeaway"
-                description="Pick up at the restaurant"
+                label={t("orderType.takeaway.label")}
+                description={t("orderType.takeaway.description")}
                 icon={ShoppingBag}
                 onClick={() => setOrderType("takeaway")}
               />
               <ChoiceButton
                 active={orderType === "table"}
-                label="At the restaurant"
-                description="Order for your table"
+                label={t("orderType.table.label")}
+                description={t("orderType.table.description")}
                 icon={Utensils}
                 onClick={() => setOrderType("table")}
               />
             </div>
             {orderType === "table" && (
               <label className="mt-4 block text-sm font-semibold text-pita">
-                Table number
+                {t("orderType.tableNumberLabel")}
                 <input
                   required
                   value={tableNumber}
@@ -183,9 +171,9 @@ export function CheckoutPage({
             )}
           </CheckoutSection>
 
-          <CheckoutSection title="Contact details">
+          <CheckoutSection title={t("contact.title")}>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Name">
+              <Field label={t("contact.name")}>
                 <input
                   required
                   minLength={2}
@@ -196,7 +184,7 @@ export function CheckoutPage({
                   className={inputClass}
                 />
               </Field>
-              <Field label="Email">
+              <Field label={t("contact.email")}>
                 <input
                   required
                   type="email"
@@ -206,7 +194,7 @@ export function CheckoutPage({
                   className={inputClass}
                 />
               </Field>
-              <Field label="Phone (optional)">
+              <Field label={t("contact.phone")}>
                 <input
                   type="tel"
                   autoComplete="tel"
@@ -218,22 +206,22 @@ export function CheckoutPage({
             </div>
           </CheckoutSection>
 
-          <CheckoutSection title="Payment">
+          <CheckoutSection title={t("payment.title")}>
             <div className="grid gap-3 sm:grid-cols-2">
               <ChoiceButton
                 active={paymentMethod === "online"}
-                label="Card"
-                description="Authorize now, capture on acceptance"
+                label={t("payment.card.label")}
+                description={t("payment.card.description")}
                 icon={CreditCard}
                 onClick={() => setPaymentMethod("online")}
               />
               <ChoiceButton
                 active={paymentMethod === "cash_on_site"}
-                label="Cash"
+                label={t("payment.cash.label")}
                 description={
                   orderType === "takeaway"
-                    ? "Pay when you pick up"
-                    : "Pay at your table"
+                    ? t("payment.cash.descriptionTakeaway")
+                    : t("payment.cash.descriptionTable")
                 }
                 icon={ShoppingBag}
                 onClick={() => setPaymentMethod("cash_on_site")}
@@ -252,7 +240,7 @@ export function CheckoutPage({
         </div>
 
         <aside className="h-fit rounded-3xl border border-pita/10 bg-pita/5 p-6 lg:sticky lg:top-24">
-          <h2 className="text-xl font-black text-pita">Order summary</h2>
+          <h2 className="text-xl font-black text-pita">{t("summary.title")}</h2>
           <div className="mt-5 space-y-3">
             {items.map((item) => (
               <div
@@ -267,7 +255,7 @@ export function CheckoutPage({
             ))}
           </div>
           <div className="mt-5 flex justify-between border-t border-pita/20 pt-5 text-lg font-black text-pita">
-            <span>Total</span>
+            <span>{t("summary.total")}</span>
             <span className="text-lemon">€ {total.toFixed(2)}</span>
           </div>
           <button
@@ -276,15 +264,15 @@ export function CheckoutPage({
             className="mt-6 h-12 w-full rounded-full bg-chili font-black text-pita transition hover:bg-chili/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {busy
-              ? "Creating order…"
+              ? t("summary.creatingOrder")
               : stripeStep
-                ? "Continue payment"
+                ? t("summary.continuePayment")
                 : paymentMethod === "online"
-                  ? "Continue to secure payment"
-                  : "Place order"}
+                  ? t("summary.continueToPayment")
+                  : t("summary.placeOrder")}
           </button>
           <p className="mt-3 text-center text-xs text-pita/60">
-            Menu prices are verified again by the server.
+            {t("summary.priceDisclaimer")}
           </p>
         </aside>
       </form>

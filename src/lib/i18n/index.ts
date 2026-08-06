@@ -12,6 +12,8 @@ import deMenu from "@/lib/i18n/locales/de/menu.json";
 import enMenu from "@/lib/i18n/locales/en/menu.json";
 import deCart from "@/lib/i18n/locales/de/cart.json";
 import enCart from "@/lib/i18n/locales/en/cart.json";
+import deCheckout from "@/lib/i18n/locales/de/checkout.json";
+import enCheckout from "@/lib/i18n/locales/en/checkout.json";
 
 i18n
   .use(LanguageDetector)
@@ -25,12 +27,14 @@ i18n
         home: enHome,
         menu: enMenu,
         cart: enCart,
+        checkout: enCheckout,
       },
       de: {
         food: deFood,
         home: deHome,
         menu: deMenu,
         cart: deCart,
+        checkout: deCheckout,
       },
     },
     fallbackLng: "de",

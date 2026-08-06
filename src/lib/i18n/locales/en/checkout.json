@@ -1,0 +1,52 @@
+{
+  "eyebrow": "Checkout",
+  "title": "Complete your order",
+  "orderType": {
+    "title": "Order type",
+    "takeaway": {
+      "label": "Takeaway",
+      "description": "Pick up at the restaurant"
+    },
+    "table": {
+      "label": "At the restaurant",
+      "description": "Order for your table"
+    },
+    "tableNumberLabel": "Table number"
+  },
+  "contact": {
+    "title": "Contact details",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone (optional)"
+  },
+  "payment": {
+    "title": "Payment",
+    "card": {
+      "label": "Card",
+      "description": "Authorize now, capture on acceptance"
+    },
+    "cash": {
+      "label": "Cash",
+      "descriptionTakeaway": "Pay when you pick up",
+      "descriptionTable": "Pay at your table"
+    }
+  },
+  "summary": {
+    "title": "Order summary",
+    "total": "Total",
+    "creatingOrder": "Creating order…",
+    "continuePayment": "Continue payment",
+    "continueToPayment": "Continue to secure payment",
+    "placeOrder": "Place order",
+    "priceDisclaimer": "Menu prices are verified again by the server."
+  },
+  "emptyCart": {
+    "title": "Your cart is empty",
+    "description": "Add something from the menu before checking out.",
+    "browseMenu": "Browse the menu"
+  },
+  "errors": {
+    "orderFailed": "The order could not be created.",
+    "stripeNotConfigured": "Stripe is not configured for this restaurant."
+  }
+}

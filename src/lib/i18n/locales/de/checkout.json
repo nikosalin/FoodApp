@@ -1,0 +1,52 @@
+{
+  "eyebrow": "Kasse",
+  "title": "Bestellung abschließen",
+  "orderType": {
+    "title": "Bestellart",
+    "takeaway": {
+      "label": "Abholung",
+      "description": "Im Restaurant abholen"
+    },
+    "table": {
+      "label": "Im Restaurant",
+      "description": "Für deinen Tisch bestellen"
+    },
+    "tableNumberLabel": "Tischnummer"
+  },
+  "contact": {
+    "title": "Kontaktdaten",
+    "name": "Name",
+    "email": "E-Mail",
+    "phone": "Telefon (optional)"
+  },
+  "payment": {
+    "title": "Zahlung",
+    "card": {
+      "label": "Karte",
+      "description": "Jetzt autorisieren, bei Annahme abbuchen"
+    },
+    "cash": {
+      "label": "Bar",
+      "descriptionTakeaway": "Bei Abholung bezahlen",
+      "descriptionTable": "Am Tisch bezahlen"
+    }
+  },
+  "summary": {
+    "title": "Bestellübersicht",
+    "total": "Gesamt",
+    "creatingOrder": "Bestellung wird erstellt…",
+    "continuePayment": "Zahlung fortsetzen",
+    "continueToPayment": "Weiter zur sicheren Zahlung",
+    "placeOrder": "Bestellung aufgeben",
+    "priceDisclaimer": "Menüpreise werden erneut vom Server geprüft."
+  },
+  "emptyCart": {
+    "title": "Dein Warenkorb ist leer",
+    "description": "Füge etwas aus dem Menü hinzu, bevor du zur Kasse gehst.",
+    "browseMenu": "Menü durchsuchen"
+  },
+  "errors": {
+    "orderFailed": "Die Bestellung konnte nicht erstellt werden.",
+    "stripeNotConfigured": "Stripe ist für dieses Restaurant nicht konfiguriert."
+  }
+}

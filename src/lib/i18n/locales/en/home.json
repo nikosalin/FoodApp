@@ -1,6 +1,6 @@
 {
   "navbar": {
-    "Logo": "The Greeks"
+    "Logo": "Saloniki Grill"
   },
   "header": {
     "title": "Choose your favorite"
@@ -17,10 +17,25 @@
   },
   "appQr": {
     "badge": "Right on your phone",
-    "title": "Scan, open the menu, and order.",
+    "title": "Scan and order.",
     "description": "Open your smartphone camera and point it at the QR code. You'll be taken directly to The Greeks.",
     "openButton": "Open app",
     "ariaLabel": "Open The Greeks",
     "qrTitle": "QR code for The Greeks"
+  },
+  "hours": {
+    "addressTitle": "Address",
+    "deliveryTitle": "Delivery times",
+    "contactTitle": "More information",
+    "closed": "Closed",
+    "days": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    }
   }
 }

@@ -7,6 +7,58 @@ export default interface Resources {
       "title": "Your Cart"
     }
   },
+  "checkout": {
+    "contact": {
+      "email": "Email",
+      "name": "Name",
+      "phone": "Phone (optional)",
+      "title": "Contact details"
+    },
+    "emptyCart": {
+      "browseMenu": "Browse the menu",
+      "description": "Add something from the menu before checking out.",
+      "title": "Your cart is empty"
+    },
+    "errors": {
+      "orderFailed": "The order could not be created.",
+      "stripeNotConfigured": "Stripe is not configured for this restaurant."
+    },
+    "eyebrow": "Checkout",
+    "orderType": {
+      "table": {
+        "description": "Order for your table",
+        "label": "At the restaurant"
+      },
+      "tableNumberLabel": "Table number",
+      "takeaway": {
+        "description": "Pick up at the restaurant",
+        "label": "Takeaway"
+      },
+      "title": "Order type"
+    },
+    "payment": {
+      "card": {
+        "description": "Authorize now, capture on acceptance",
+        "label": "Card"
+      },
+      "cash": {
+        "descriptionTable": "Pay at your table",
+        "descriptionTakeaway": "Pay when you pick up",
+        "label": "Cash"
+      },
+      "title": "Payment"
+    },
+    "summary": {
+      "continuePayment": "Continue payment",
+      "continueToPayment": "Continue to secure payment",
+      "creatingOrder": "Creating order…",
+      "placeOrder": "Place order",
+      "priceDisclaimer": "Menu prices are verified again by the server.",
+      "title": "Order summary",
+      "total": "Total"
+    },
+    "title": "Complete your order"
+  },
   "food": {
     "chicken-pita": {
       "eyebrow": "TASTE THE",
@@ -65,7 +117,7 @@ export default interface Resources {
       "description": "Open your smartphone camera and point it at the QR code. You'll be taken directly to The Greeks.",
       "openButton": "Open app",
       "qrTitle": "QR code for The Greeks",
-      "title": "Scan, open the menu, and order."
+      "title": "Scan and order."
     },
     "footer": {
       "title": "Check our menu."
@@ -80,8 +132,23 @@ export default interface Resources {
       "tagline": "The taste of Thessaloniki's street food, made fresh every day.",
       "title": "THE GREEKS"
     },
+    "hours": {
+      "addressTitle": "Address",
+      "closed": "Closed",
+      "contactTitle": "More information",
+      "days": {
+        "friday": "Friday",
+        "monday": "Monday",
+        "saturday": "Saturday",
+        "sunday": "Sunday",
+        "thursday": "Thursday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday"
+      },
+      "deliveryTitle": "Delivery times"
+    },
     "navbar": {
-      "Logo": "The Greeks"
+      "Logo": "Saloniki Grill"
     }
   },
   "menu": {

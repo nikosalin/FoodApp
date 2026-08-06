@@ -19,6 +19,20 @@ export interface FeaturedItem {
 
 export interface StoreInfo {
   phone: string;
-  hours: string;
   addressLines: string[];
+}
+
+export type DayKey =
+  | "monday"
+  | "tuesday"
+  | "wednesday"
+  | "thursday"
+  | "friday"
+  | "saturday"
+  | "sunday";
+
+export interface DaySchedule {
+  dayKey: DayKey;
+  open: string | null;
+  close: string | null;
 }
