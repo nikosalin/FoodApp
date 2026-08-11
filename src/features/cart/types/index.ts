@@ -6,6 +6,13 @@ export interface CartItem {
   price: number;
   quantity: number;
   excludedIngredients: string[];
+  selectedExtras?: CartExtra[];
+}
+
+export interface CartExtra {
+  menuItemId: string;
+  name: string;
+  price: number;
 }
 
 export interface CartState {

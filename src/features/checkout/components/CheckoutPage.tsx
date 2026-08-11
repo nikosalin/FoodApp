@@ -64,11 +64,18 @@ export function CheckoutPage({
           paymentMethod,
           onlinePaymentProvider:
             paymentMethod === "online" ? "stripe" : undefined,
-          items: items.map((item) => ({
-            menuItemId: item.menuItemId,
-            quantity: item.quantity,
-            excludedIngredients: item.excludedIngredients,
-          })),
+          items: items.flatMap((item) => [
+            {
+              menuItemId: item.menuItemId,
+              quantity: item.quantity,
+              excludedIngredients: item.excludedIngredients,
+            },
+            ...(item.selectedExtras ?? []).map((extra) => ({
+              menuItemId: extra.menuItemId,
+              quantity: item.quantity,
+              excludedIngredients: [],
+            })),
+          ]),
         }),
       });
       const body = (await response.json()) as {
@@ -253,6 +260,11 @@ export function CheckoutPage({
                   {item.excludedIngredients.length > 0 && (
                     <small className="mt-1 block text-xs text-tomato">
                       Without {item.excludedIngredients.join(", ")}
+                    </small>
+                  )}
+                  {(item.selectedExtras?.length ?? 0) > 0 && (
+                    <small className="mt-1 block text-xs text-olive">
+                      Extra: {item.selectedExtras?.map((extra) => extra.name).join(", ")}
                     </small>
                   )}
                 </span>

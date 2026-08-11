@@ -5,5 +5,15 @@ export function getCartItemCount(items: CartItem[]): number {
 }
 
 export function getCartTotal(items: CartItem[]): number {
-  return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  return items.reduce(
+    (sum, item) =>
+      sum +
+      (item.price +
+        (item.selectedExtras ?? []).reduce(
+          (extrasTotal, extra) => extrasTotal + extra.price,
+          0,
+        )) *
+        item.quantity,
+    0,
+  );
 }

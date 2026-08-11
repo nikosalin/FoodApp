@@ -20,7 +20,9 @@ export const useCartStore = create<CartState>()(
             (i) =>
               i.menuItemId === item.menuItemId &&
               i.excludedIngredients.join("|") ===
-                item.excludedIngredients.join("|"),
+                item.excludedIngredients.join("|") &&
+              (i.selectedExtras ?? []).map((extra) => extra.menuItemId).join("|") ===
+                (item.selectedExtras ?? []).map((extra) => extra.menuItemId).join("|"),
           );
           if (existing) {
             return {
@@ -55,7 +57,7 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: "opa-cart",
-      version: 3,
+      version: 4,
       skipHydration: true,
     },
   ),

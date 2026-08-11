@@ -18,19 +18,19 @@
     "items": {
       "fetaSalad": {
         "name": "Feta Salad",
-        "description": "Creamy Greek feta, served simply."
+        "description": "Feta, olive oil, and oregano."
       },
       "tzatzikiPortion": {
         "name": "Tzatziki Portion",
-        "description": "Cool yogurt, cucumber, and garlic dip."
+        "description": "Yogurt, cucumber, and garlic."
       },
       "whiteCabbageSalad": {
         "name": "White Cabbage Salad",
-        "description": "Crisp, lightly dressed cabbage slaw."
+        "description": "White cabbage, vinegar, oil, and seasoning."
       },
       "mixedSalad": {
         "name": "Mixed Salad",
-        "description": "A fresh mix of seasonal vegetables."
+        "description": "Lettuce, tomatoes, cucumber, onions, and corn."
       },
       "farmersSalad": {
         "name": "Farmer's Salad",
@@ -38,11 +38,11 @@
       },
       "peperoni": {
         "name": "Pepperoncini",
-        "description": "Pickled Greek peppers, mild and tangy."
+        "description": "Pepperoncini, olive oil, and garlic."
       },
       "olives": {
         "name": "Olives",
-        "description": "A bowl of marinated Greek olives."
+        "description": "Olives, olive oil, and herbs."
       }
     }
   },
@@ -51,7 +51,7 @@
     "items": {
       "gyrosPlate": {
         "name": "Gyros Plate",
-        "description": "Served with a side of your choice."
+        "description": "Gyros, tzatziki, fries, onions, oregano, ketchup, mayonnaise, and mustard."
       },
       "vegetarianPita": {
         "name": "Vegetarian Pita",
@@ -71,23 +71,23 @@
       },
       "gyrosPlain": {
         "name": "Gyros, Plain",
-        "description": "Just gyros and onions, no extras."
+        "description": "Gyros, onions, and oregano."
       },
       "pitaNoGyros": {
         "name": "Pita with Fries & Tzatziki",
-        "description": "No gyros — just pita, fries, and tzatziki."
+        "description": "Pita bread, fries, tzatziki, ketchup, mayonnaise, and mustard."
       },
       "gyrosBox": {
         "name": "Gyros Box",
-        "description": "Gyros, fries, onions, and a sauce of your choice."
+        "description": "Gyros, fries, onions, oregano, ketchup, mayonnaise, and mustard."
       },
       "gyrosMetaxa": {
         "name": "Gyros Metaxa",
-        "description": "Baked with feta and onions, served with salad or fries."
+        "description": "Gyros, feta, onions, oregano, salad, fries, ketchup, mayonnaise, and mustard."
       },
       "gyrosMetaxaRiceNoodles": {
         "name": "Gyros Metaxa with Rice Noodles",
-        "description": "Rice noodles, baked with feta and onions."
+        "description": "Gyros, rice noodles, feta, onions, and oregano."
       }
     }
   },
@@ -108,14 +108,14 @@
       },
       "grillPlatter": {
         "name": "Grill Platter",
-        "description": "Gyros, one souvlaki skewer, and one soutzoukaki."
+        "description": "Gyros, souvlaki skewer, soutzoukaki, onions, and oregano."
       }
     }
   },
   "sides": {
     "label": "SIDES",
     "items": {
-      "fries": { "name": "Fries", "description": "Classic crispy fries." },
+      "fries": { "name": "Fries", "description": "Fries, ketchup, mayonnaise, and mustard." },
       "bratwurst": {
         "name": "Bratwurst",
         "description": "Grilled German sausage."
@@ -126,7 +126,7 @@
       },
       "currywurstFries": {
         "name": "Currywurst with Fries",
-        "description": "Our currywurst, served with fries."
+        "description": "Currywurst, fries, ketchup, mayonnaise, and mustard."
       },
       "plainPitaBread": {
         "name": "Plain Pita Bread",

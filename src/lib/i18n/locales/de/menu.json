@@ -18,19 +18,19 @@
     "items": {
       "fetaSalad": {
         "name": "Feta",
-        "description": "Cremiger griechischer Feta, pur serviert."
+        "description": "Feta, Olivenöl und Oregano."
       },
       "tzatzikiPortion": {
         "name": "Portion Tzatziki",
-        "description": "Erfrischender Joghurt-Dip mit Gurke und Knoblauch."
+        "description": "Joghurt, Gurke und Knoblauch."
       },
       "whiteCabbageSalad": {
         "name": "Weißkrautsalat",
-        "description": "Knackiger Weißkrautsalat mit leichtem Dressing."
+        "description": "Weißkohl, Essig, Öl und Gewürze."
       },
       "mixedSalad": {
         "name": "Gemischter Salat",
-        "description": "Frische saisonale Salatmischung."
+        "description": "Blattsalat, Tomaten, Gurken, Zwiebeln und Mais."
       },
       "farmersSalad": {
         "name": "Bauernsalat",
@@ -38,11 +38,11 @@
       },
       "peperoni": {
         "name": "Peperoni",
-        "description": "Mild eingelegte griechische Peperoni."
+        "description": "Peperoni, Olivenöl und Knoblauch."
       },
       "olives": {
         "name": "Oliven",
-        "description": "Marinierte griechische Oliven."
+        "description": "Oliven, Olivenöl und Kräuter."
       }
     }
   },
@@ -51,7 +51,7 @@
     "items": {
       "gyrosPlate": {
         "name": "Gyros-Teller",
-        "description": "Serviert mit einer Beilage nach Wahl."
+        "description": "Gyros, Tzatziki, Pommes, Zwiebeln, Oregano, Ketchup, Mayonnaise und Senf."
       },
       "vegetarianPita": {
         "name": "Vegetarische Pita",
@@ -71,23 +71,23 @@
       },
       "gyrosPlain": {
         "name": "Gyros pur",
-        "description": "Nur Gyros und Zwiebeln."
+        "description": "Gyros, Zwiebeln und Oregano."
       },
       "pitaNoGyros": {
         "name": "Pita mit Pommes & Tzatziki",
-        "description": "Ohne Gyros – mit Pommes und Tzatziki."
+        "description": "Pitabrot, Pommes, Tzatziki, Ketchup, Mayonnaise und Senf."
       },
       "gyrosBox": {
         "name": "Gyros Box",
-        "description": "Gyros, Pommes, Zwiebeln und eine Sauce nach Wahl."
+        "description": "Gyros, Pommes, Zwiebeln, Oregano, Ketchup, Mayonnaise und Senf."
       },
       "gyrosMetaxa": {
         "name": "Gyros Metaxa",
-        "description": "Mit Feta und Zwiebeln überbacken, dazu Salat oder Pommes."
+        "description": "Gyros, Feta, Zwiebeln, Oregano, Salat, Pommes, Ketchup, Mayonnaise und Senf."
       },
       "gyrosMetaxaRiceNoodles": {
         "name": "Gyros Metaxa mit Reisnudeln",
-        "description": "Reisnudeln, mit Feta und Zwiebeln überbacken."
+        "description": "Gyros, Reisnudeln, Feta, Zwiebeln und Oregano."
       }
     }
   },
@@ -108,7 +108,7 @@
       },
       "grillPlatter": {
         "name": "Grillteller",
-        "description": "Gyros, ein Souvlaki-Spieß und ein Soutzoukaki."
+        "description": "Gyros, Souvlaki-Spieß, Soutzoukaki, Zwiebeln und Oregano."
       }
     }
   },
@@ -117,7 +117,7 @@
     "items": {
       "fries": {
         "name": "Pommes",
-        "description": "Knusprige Pommes frites."
+        "description": "Pommes, Ketchup, Mayonnaise und Senf."
       },
       "bratwurst": {
         "name": "Bratwurst",
@@ -129,7 +129,7 @@
       },
       "currywurstFries": {
         "name": "Currywurst mit Pommes",
-        "description": "Currywurst serviert mit knusprigen Pommes."
+        "description": "Currywurst, Pommes, Ketchup, Mayonnaise und Senf."
       },
       "plainPitaBread": {
         "name": "Pitabrot",

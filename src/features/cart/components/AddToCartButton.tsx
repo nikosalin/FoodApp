@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useCartStore } from "../store/useCartStore";
 import { AddToCartButtonProps } from "../types";
+import type { CartExtra } from "../types";
 import { useTranslation } from "react-i18next";
 
 export function AddToCartButton({
@@ -17,8 +18,18 @@ export function AddToCartButton({
   const addItem = useCartStore((state) => state.addItem);
   const { t } = useTranslation("menu");
   const [open, setOpen] = useState(false);
-  const ingredients = useMemo(() => ingredientList(description), [description]);
+  const allIngredients = useMemo(() => ingredientList(description), [description]);
+  const extras = useMemo(() => extraOptions(allIngredients), [allIngredients]);
+  const ingredients = useMemo(
+    () =>
+      allIngredients.filter(
+        (ingredient) =>
+          !extras.some((extra) => extra.name === ingredient),
+      ),
+    [allIngredients, extras],
+  );
   const [excluded, setExcluded] = useState<string[]>([]);
+  const [selectedExtras, setSelectedExtras] = useState<CartExtra[]>([]);
 
   function addCustomizedItem() {
     const sortedExcluded = [...excluded].sort();
@@ -29,11 +40,13 @@ export function AddToCartButton({
         name,
         price,
         excludedIngredients: sortedExcluded,
+        selectedExtras,
       },
       restaurantId,
     );
     setOpen(false);
     setExcluded([]);
+    setSelectedExtras([]);
   }
 
   return (
@@ -120,8 +133,50 @@ export function AddToCartButton({
               </p>
             )}
 
+            {extras.length > 0 && (
+              <div className="mt-7">
+                <p className="text-sm font-bold text-char">Extras</p>
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {extras.map((extra) => {
+                    const selected = selectedExtras.some(
+                      (candidate) => candidate.menuItemId === extra.menuItemId,
+                    );
+                    return (
+                      <button
+                        key={extra.menuItemId}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() =>
+                          setSelectedExtras((current) =>
+                            selected
+                              ? current.filter(
+                                  (candidate) =>
+                                    candidate.menuItemId !== extra.menuItemId,
+                                )
+                              : [...current, extra],
+                          )
+                        }
+                        className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${
+                          selected
+                            ? "border-olive/30 bg-white text-char"
+                            : "border-char/10 bg-char/5 text-char/65"
+                        }`}
+                      >
+                        <span>{extra.name} · +€1.00</span>
+                        <span className={`grid h-6 w-6 place-items-center rounded-full ${selected ? "bg-olive text-white" : "bg-char/10"}`}>
+                          {selected && <Check className="h-3.5 w-3.5" />}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="mt-8 flex items-center justify-between gap-5 border-t border-char/10 pt-6">
-              <span className="text-2xl font-black text-tomato">€ {price.toFixed(2)}</span>
+              <span className="text-2xl font-black text-tomato">
+                € {(price + selectedExtras.length).toFixed(2)}
+              </span>
               <button
                 type="button"
                 onClick={addCustomizedItem}
@@ -146,4 +201,21 @@ function ingredientList(description: string) {
     .map((ingredient) => ingredient.trim())
     .filter((ingredient) => ingredient.length >= 2 && ingredient.length <= 50);
   return normalized.length >= 2 ? [...new Set(normalized)].slice(0, 10) : [];
+}
+
+function extraOptions(ingredients: string[]): CartExtra[] {
+  const definitions = [
+    { menuItemId: "ketchup", labels: ["ketchup"] },
+    { menuItemId: "mayonnaise", labels: ["mayonnaise"] },
+    { menuItemId: "mustard", labels: ["senf", "mustard"] },
+  ];
+  return ingredients.flatMap((ingredient) => {
+    const normalized = ingredient.toLocaleLowerCase("de-DE");
+    const definition = definitions.find((candidate) =>
+      candidate.labels.includes(normalized),
+    );
+    return definition
+      ? [{ menuItemId: definition.menuItemId, name: ingredient, price: 1 }]
+      : [];
+  });
 }
