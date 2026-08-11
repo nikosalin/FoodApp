@@ -34,6 +34,7 @@ import { useTranslation } from "react-i18next";
 import { MenuCategoriesList } from "../data/menu-categories";
 import { MenuCategoryNav } from "./MenuCategoryNav";
 import { MenuCategorySection } from "./MenuCategorySection";
+import { BottomCartDock } from "@/features/cart/components/BottomCartDock";
 
 export function MenuPage() {
   const { t } = useTranslation(["menu", "food"]);
@@ -106,7 +107,7 @@ export function MenuPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f1e8] pb-20">
+    <div className="min-h-screen bg-[#f7f1e8] pb-28 md:pb-20">
       <div className="relative overflow-hidden bg-tomato px-4 py-20 text-center text-white">
         <div className="absolute inset-0 opacity-10 [background-image:radial-gradient(circle_at_center,white_1px,transparent_1px)] [background-size:18px_18px]" />
         <p className="relative text-xs font-black uppercase tracking-[0.35em] text-white/75">Fresh from the grill</p>
@@ -127,6 +128,8 @@ export function MenuPage() {
           <MenuCategorySection key={category.id} {...category} />
         ))}
       </div>
+
+      <BottomCartDock />
     </div>
   );
 }

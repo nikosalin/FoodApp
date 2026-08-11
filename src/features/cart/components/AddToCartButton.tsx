@@ -24,6 +24,7 @@ export function AddToCartButton({
     () =>
       allIngredients.filter(
         (ingredient) =>
+          ingredient.toLocaleLowerCase("de-DE") !== "gyros" &&
           !extras.some((extra) => extra.name === ingredient),
       ),
     [allIngredients, extras],
