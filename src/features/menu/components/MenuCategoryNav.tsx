@@ -39,9 +39,19 @@ export function MenuCategoryNav({
   const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    navRef.current
-      ?.querySelector<HTMLElement>(`[data-category-id="${activeId}"]`)
-      ?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    const nav = navRef.current;
+    const activeButton = nav?.querySelector<HTMLElement>(
+      `[data-category-id="${activeId}"]`,
+    );
+    if (!nav || !activeButton) return;
+
+    nav.scrollTo({
+      left:
+        activeButton.offsetLeft -
+        nav.clientWidth / 2 +
+        activeButton.offsetWidth / 2,
+      behavior: "smooth",
+    });
   }, [activeId]);
 
   return (
