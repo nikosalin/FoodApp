@@ -997,6 +997,14 @@ function OrderCard({
               </li>
             ))}
           </ul>
+          {order.customerNotes && (
+            <div className="mt-3 whitespace-pre-line rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900">
+              <span className="mb-1 block text-xs uppercase tracking-wide text-amber-700">
+                Kitchen customizations
+              </span>
+              {order.customerNotes}
+            </div>
+          )}
         </div>
         <div className="shrink-0 text-left lg:text-right">
           <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">

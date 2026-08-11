@@ -224,11 +224,20 @@ export function validateOrderInput(
       (candidate) => candidate.id === menuItemId,
     );
     const quantity = Number(item.quantity);
+    const excludedIngredients = Array.isArray(item.excludedIngredients)
+      ? item.excludedIngredients.map((ingredient) =>
+          typeof ingredient === "string" ? ingredient.trim() : "",
+        )
+      : [];
     if (
       !menuItem ||
       !Number.isInteger(quantity) ||
       quantity < 1 ||
-      quantity > 99
+      quantity > 99 ||
+      excludedIngredients.length > 10 ||
+      excludedIngredients.some(
+        (ingredient) => ingredient.length < 2 || ingredient.length > 50,
+      )
     ) {
       throw new OrderRepositoryError(
         "Every order item must be selected from this restaurant's menu",
@@ -240,6 +249,7 @@ export function validateOrderInput(
       name: menuItem.name,
       quantity,
       unitPrice: menuItem.price,
+      excludedIngredients: [...new Set(excludedIngredients)],
     };
   });
 

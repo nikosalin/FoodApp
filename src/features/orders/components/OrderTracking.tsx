@@ -8,6 +8,7 @@ type TrackedOrder = {
   status: OrderStatus;
   orderType: "table" | "takeaway" | "delivery";
   estimatedFulfillmentAt?: string;
+  customerNotes?: string;
   items: OrderItem[];
   total: number;
   rejectionReason?: string;
@@ -107,6 +108,12 @@ export function OrderTracking({ trackingToken }: { trackingToken: string }) {
           </li>
         ))}
       </ul>
+      {order.customerNotes && (
+        <div className="mt-4 whitespace-pre-line rounded-xl bg-amber-50 p-4 text-sm text-amber-900">
+          <strong className="block">Anpassungen</strong>
+          {order.customerNotes}
+        </div>
+      )}
       <p className="mt-4 text-right text-xl font-black">
         {order.total.toLocaleString("de-DE", {
           style: "currency",

@@ -94,6 +94,7 @@ export async function createOrderInSupabase(
       .map((item) => ({
         code: item.menuItemId,
         quantity: item.quantity,
+        excludedIngredients: [...(item.excludedIngredients ?? [])].sort(),
       }))
       .sort((first, second) =>
         String(first.code).localeCompare(String(second.code)),
@@ -118,7 +119,7 @@ export async function createOrderInSupabase(
           countryCode: input.deliveryAddress.countryCode,
         }
       : null,
-    p_customer_notes: null,
+    p_customer_notes: customizationSummary(input.items) ?? null,
     p_payment_method: databasePaymentMethod(
       input.paymentMethod,
       input.onlinePaymentProvider,
@@ -635,6 +636,7 @@ function mapOrder(
     customerName: order.customer_name,
     customerEmail: order.customer_email ?? undefined,
     customerPhone: order.customer_phone ?? undefined,
+    customerNotes: order.customer_notes ?? undefined,
     contactVerified: order.contact_verified,
     paymentMethod: appPaymentMethod(order.payment_method),
     paymentId: payment?.id,
@@ -652,6 +654,16 @@ function mapOrder(
     closedAt: order.closed_at ?? undefined,
     rejectionReason: order.rejection_reason ?? undefined,
   };
+}
+
+function customizationSummary(items: OrderInput["items"]) {
+  const lines = items
+    .filter((item) => item.excludedIngredients?.length)
+    .map(
+      (item) =>
+        `${item.quantity} × ${item.name}: without ${item.excludedIngredients?.join(", ")}`,
+    );
+  return lines.length ? lines.join("\n").slice(0, 1000) : undefined;
 }
 
 function databasePaymentMethod(

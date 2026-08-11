@@ -1,8 +1,11 @@
 export interface CartItem {
+  /** Unique cart-line id. Customizations create separate lines. */
   id: string;
+  menuItemId: string;
   name: string;
   price: number;
   quantity: number;
+  excludedIngredients: string[];
 }
 
 export interface CartState {
@@ -17,6 +20,7 @@ export interface CartState {
 export interface AddToCartButtonProps {
   id: string;
   name: string;
+  description: string;
   price: number;
   restaurantId: string;
 }

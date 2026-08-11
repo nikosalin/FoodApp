@@ -27,6 +27,7 @@ export async function GET(
       status: order.status,
       orderType: order.orderType,
       estimatedFulfillmentAt: order.estimatedFulfillmentAt,
+      customerNotes: order.customerNotes,
       items: order.items,
       total: order.total,
       createdAt: order.createdAt,

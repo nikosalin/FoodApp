@@ -1,6 +1,15 @@
 {
   "pageTitle": "Unsere Speisekarte",
   "addButton": "Hinzufügen",
+  "customize": {
+    "open": "Anpassen",
+    "eyebrow": "Nach deinem Geschmack",
+    "included": "Enthaltene Zutaten",
+    "hint": "Tippe auf eine Zutat, um sie abzuwählen oder wieder hinzuzufügen.",
+    "noOptions": "Für diesen Artikel sind keine abwählbaren Zutaten angegeben.",
+    "add": "In den Warenkorb",
+    "close": "Anpassung schließen"
+  },
   "salads": {
     "label": "SALATE",
     "items": {

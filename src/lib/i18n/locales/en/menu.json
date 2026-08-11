@@ -1,6 +1,15 @@
 {
   "pageTitle": "Our Menu",
   "addButton": "Add",
+  "customize": {
+    "open": "Customize",
+    "eyebrow": "Make it yours",
+    "included": "Included ingredients",
+    "hint": "Tap an ingredient to remove or add it back.",
+    "noOptions": "This item has no removable ingredients listed.",
+    "add": "Add to cart",
+    "close": "Close customization"
+  },
   "salads": {
     "label": "SALADS",
     "items": {

@@ -153,6 +153,15 @@ export default interface Resources {
   },
   "menu": {
     "addButton": "Add",
+    "customize": {
+      "add": "Add to cart",
+      "close": "Close customization",
+      "eyebrow": "Make it yours",
+      "hint": "Tap an ingredient to remove or add it back.",
+      "included": "Included ingredients",
+      "noOptions": "This item has no removable ingredients listed.",
+      "open": "Customize"
+    },
     "drinksAlcoholic": {
       "items": {
         "koelsch": {

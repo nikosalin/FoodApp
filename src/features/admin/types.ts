@@ -47,6 +47,7 @@ export type OrderItem = {
   name: string;
   quantity: number;
   unitPrice: number;
+  excludedIngredients?: string[];
 };
 
 export type DeliveryAddress = {
@@ -69,6 +70,7 @@ export type RestaurantOrder = {
   customerName: string;
   customerEmail?: string;
   customerPhone?: string;
+  customerNotes?: string;
   preferredChannel?: "email" | "sms";
   paymentMethod?: "online" | "cash_on_site" | "cash_on_delivery" | "external_card";
   paymentId?: string;

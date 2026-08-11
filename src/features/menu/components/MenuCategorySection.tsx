@@ -20,11 +20,11 @@ import { MenuItemRow } from "./MenuItemRow";
 
 export function MenuCategorySection({ label, items }: MenuCategoryView) {
   return (
-    <section className="py-6">
-      <h3 className="mb-2 text-2xl font-black tracking-wide text-pita">
+    <section className="py-10">
+      <h3 className="mb-6 text-3xl font-black uppercase tracking-tight text-char">
         {label}
       </h3>
-      <div>
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {items.map((item) => (
           <MenuItemRow key={item.id} {...item} />
         ))}

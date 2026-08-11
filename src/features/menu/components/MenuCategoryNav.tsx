@@ -35,8 +35,8 @@ export function MenuCategoryNav({
   onSelect,
 }: MenuCategoryNavProps) {
   return (
-    <nav className="sticky top-16 z-40 overflow-x-auto border-b border-olive/30 bg-char/95 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl gap-2 px-4 py-3">
+    <nav className="sticky top-16 z-40 overflow-x-auto border-b border-char/10 bg-[#f7f1e8]/95 shadow-sm backdrop-blur">
+      <div className="mx-auto flex max-w-7xl gap-2 px-4 py-4">
         {categories.map((category) => {
           const isActive = category.id === activeId;
           return (
@@ -45,8 +45,8 @@ export function MenuCategoryNav({
               onClick={() => onSelect(category.id)}
               className={`whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
                 isActive
-                  ? "bg-lemon text-char"
-                  : "text-pita/70 hover:text-lemon"
+                  ? "bg-tomato text-white shadow-md"
+                  : "bg-white text-char/65 hover:text-tomato"
               }`}
             >
               {category.label}

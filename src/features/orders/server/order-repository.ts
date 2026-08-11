@@ -104,6 +104,7 @@ export function createOrder(
     customerName: input.customerName.trim(),
     customerEmail: input.customerEmail?.trim().toLowerCase() || undefined,
     customerPhone: input.customerPhone?.trim() || undefined,
+    customerNotes: customizationSummary(input.items),
     preferredChannel: input.preferredChannel,
     paymentMethod: input.paymentMethod,
     contactVerified: options?.contactVerified ?? false,
@@ -123,6 +124,16 @@ export function createOrder(
   enqueueOrderNotification(order, "order_created");
   emitChange(input.restaurantId);
   return order;
+}
+
+function customizationSummary(items: OrderInput["items"]) {
+  const lines = items
+    .filter((item) => item.excludedIngredients?.length)
+    .map(
+      (item) =>
+        `${item.quantity} × ${item.name}: without ${item.excludedIngredients?.join(", ")}`,
+    );
+  return lines.length ? lines.join("\n").slice(0, 1000) : undefined;
 }
 
 export function getOrderByTrackingToken(trackingToken: string) {

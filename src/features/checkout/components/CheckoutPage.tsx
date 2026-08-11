@@ -65,8 +65,9 @@ export function CheckoutPage({
           onlinePaymentProvider:
             paymentMethod === "online" ? "stripe" : undefined,
           items: items.map((item) => ({
-            menuItemId: item.id,
+            menuItemId: item.menuItemId,
             quantity: item.quantity,
+            excludedIngredients: item.excludedIngredients,
           })),
         }),
       });
@@ -249,6 +250,11 @@ export function CheckoutPage({
               >
                 <span>
                   {item.quantity} × {item.name}
+                  {item.excludedIngredients.length > 0 && (
+                    <small className="mt-1 block text-xs text-tomato">
+                      Without {item.excludedIngredients.join(", ")}
+                    </small>
+                  )}
                 </span>
                 <span>€ {(item.price * item.quantity).toFixed(2)}</span>
               </div>

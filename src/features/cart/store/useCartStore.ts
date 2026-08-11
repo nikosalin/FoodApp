@@ -16,12 +16,17 @@ export const useCartStore = create<CartState>()(
               items: [{ ...item, quantity: 1 }],
             };
           }
-          const existing = state.items.find((i) => i.id === item.id);
+          const existing = state.items.find(
+            (i) =>
+              i.menuItemId === item.menuItemId &&
+              i.excludedIngredients.join("|") ===
+                item.excludedIngredients.join("|"),
+          );
           if (existing) {
             return {
               restaurantId,
               items: state.items.map((i) =>
-                i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i,
+                i.id === existing.id ? { ...i, quantity: i.quantity + 1 } : i,
               ),
             };
           }
@@ -48,6 +53,6 @@ export const useCartStore = create<CartState>()(
 
       clearCart: () => set({ items: [], restaurantId: null }),
     }),
-    { name: "opa-cart", version: 2 },
+    { name: "opa-cart", version: 3 },
   ),
 );

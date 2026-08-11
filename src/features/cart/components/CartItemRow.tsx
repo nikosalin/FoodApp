@@ -4,7 +4,7 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import { useCartStore } from "../store/useCartStore";
 import type { CartItem } from "../types";
 
-export function CartItemRow({ id, name, price, quantity }: CartItem) {
+export function CartItemRow({ id, name, price, quantity, excludedIngredients }: CartItem) {
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
 
@@ -12,6 +12,11 @@ export function CartItemRow({ id, name, price, quantity }: CartItem) {
     <div className="flex items-center justify-between gap-4 border-b border-olive/20 py-4">
       <div>
         <h4 className="font-bold text-pita">{name}</h4>
+        {excludedIngredients.length > 0 && (
+          <p className="mt-1 text-xs text-tomato">
+            Without {excludedIngredients.join(", ")}
+          </p>
+        )}
         <span className="text-sm text-pita/70">€ {price.toFixed(2)} each</span>
       </div>
 
