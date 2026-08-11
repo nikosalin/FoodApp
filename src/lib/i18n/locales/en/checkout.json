@@ -19,6 +19,11 @@
     "email": "Email",
     "phone": "Phone (optional)"
   },
+  "notes": {
+    "title": "Order comment",
+    "label": "Notes (optional)",
+    "placeholder": "For example: Please cook well done or call when you arrive."
+  },
   "payment": {
     "title": "Payment",
     "card": {

@@ -104,7 +104,7 @@ export function createOrder(
     customerName: input.customerName.trim(),
     customerEmail: input.customerEmail?.trim().toLowerCase() || undefined,
     customerPhone: input.customerPhone?.trim() || undefined,
-    customerNotes: customizationSummary(input.items),
+    customerNotes: orderNotes(input),
     preferredChannel: input.preferredChannel,
     paymentMethod: input.paymentMethod,
     contactVerified: options?.contactVerified ?? false,
@@ -134,6 +134,13 @@ function customizationSummary(items: OrderInput["items"]) {
         `${item.quantity} × ${item.name}: without ${item.excludedIngredients?.join(", ")}`,
     );
   return lines.length ? lines.join("\n").slice(0, 1000) : undefined;
+}
+
+function orderNotes(input: OrderInput) {
+  return [input.customerNotes, customizationSummary(input.items)]
+    .filter(Boolean)
+    .join("\n")
+    .slice(0, 1000) || undefined;
 }
 
 export function getOrderByTrackingToken(trackingToken: string) {

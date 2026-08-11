@@ -110,6 +110,7 @@ export type OrderInput = {
   customerName: string;
   customerEmail?: string;
   customerPhone?: string;
+  customerNotes?: string;
   preferredChannel: "email" | "sms";
   paymentMethod: "online" | "cash_on_site" | "cash_on_delivery" | "external_card";
   onlinePaymentProvider?: "stripe" | "paypal";

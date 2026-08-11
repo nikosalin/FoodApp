@@ -119,7 +119,7 @@ export async function createOrderInSupabase(
           countryCode: input.deliveryAddress.countryCode,
         }
       : null,
-    p_customer_notes: customizationSummary(input.items) ?? null,
+    p_customer_notes: orderNotes(input) ?? null,
     p_payment_method: databasePaymentMethod(
       input.paymentMethod,
       input.onlinePaymentProvider,
@@ -664,6 +664,13 @@ function customizationSummary(items: OrderInput["items"]) {
         `${item.quantity} × ${item.name}: without ${item.excludedIngredients?.join(", ")}`,
     );
   return lines.length ? lines.join("\n").slice(0, 1000) : undefined;
+}
+
+function orderNotes(input: OrderInput) {
+  return [input.customerNotes, customizationSummary(input.items)]
+    .filter(Boolean)
+    .join("\n")
+    .slice(0, 1000) || undefined;
 }
 
 function databasePaymentMethod(

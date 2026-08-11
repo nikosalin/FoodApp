@@ -25,6 +25,7 @@ export function MarketplaceChannels() {
   const [data, setData] = useState<MarketplaceDashboardData>();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [mutationKey, setMutationKey] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -40,6 +41,25 @@ export function MarketplaceChannels() {
       setLoading(false);
     }
   }, []);
+
+  async function mutate(path: string, body: object, key: string) {
+    setMutationKey(key);
+    setError("");
+    try {
+      const response = await fetch(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const result = (await response.json()) as { message?: string; error?: string };
+      if (!response.ok) throw new Error(result.message ?? result.error ?? "Action failed");
+      await load();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Action failed");
+    } finally {
+      setMutationKey("");
+    }
+  }
 
   useEffect(() => {
     let active = true;
@@ -126,6 +146,26 @@ export function MarketplaceChannels() {
                 <code className="mt-4 block overflow-x-auto rounded-xl bg-stone-950 p-3 text-xs text-stone-300">
                   {provider.webhookPath}
                 </code>
+                {connection && (
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      disabled={Boolean(mutationKey) || !provider.configured}
+                      onClick={() => void mutate(`/api/admin/channels/connections/${connection.id}/availability`, { online: true }, `online-${connection.id}`)}
+                      className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-bold text-white disabled:opacity-40"
+                    >
+                      Set online
+                    </button>
+                    <button
+                      type="button"
+                      disabled={Boolean(mutationKey) || !provider.configured}
+                      onClick={() => void mutate(`/api/admin/channels/connections/${connection.id}/availability`, { online: false }, `offline-${connection.id}`)}
+                      className="rounded-lg border border-stone-300 px-3 py-2 text-xs font-bold disabled:opacity-40"
+                    >
+                      Set offline
+                    </button>
+                  </div>
+                )}
               </div>
             </article>
           );
@@ -151,6 +191,7 @@ export function MarketplaceChannels() {
                   <th className="px-5 py-3">Fulfillment</th>
                   <th className="px-5 py-3">Placed</th>
                   <th className="px-5 py-3 text-right">Total</th>
+                  <th className="px-5 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100">
@@ -162,6 +203,13 @@ export function MarketplaceChannels() {
                     <td className="px-5 py-4 capitalize text-stone-600">{order.fulfillment_type.replace("_", " ")}</td>
                     <td className="px-5 py-4 text-stone-600">{formatDate(order.placed_at)}</td>
                     <td className="px-5 py-4 text-right font-black">{formatMoney(order.total_minor, order.currency)}</td>
+                    <td className="px-5 py-4">
+                      <OrderActions
+                        order={order}
+                        disabled={Boolean(mutationKey)}
+                        mutate={mutate}
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -193,6 +241,56 @@ export function MarketplaceChannels() {
       </section>
     </div>
   );
+}
+
+function OrderActions({
+  order,
+  disabled,
+  mutate,
+}: {
+  order: MarketplaceDashboardData["orders"][number];
+  disabled: boolean;
+  mutate: (path: string, body: object, key: string) => Promise<void>;
+}) {
+  const path = `/api/admin/channels/orders/${order.id}/action`;
+  if (order.status === "received") {
+    return (
+      <div className="flex justify-end gap-2">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => void mutate(path, { type: "accept", preparationMinutes: 20 }, `accept-${order.id}`)}
+          className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-bold text-white disabled:opacity-40"
+        >
+          Accept · 20 min
+        </button>
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => {
+            const reason = window.prompt("Customer-friendly rejection reason");
+            if (reason) void mutate(path, { type: "reject", reason }, `reject-${order.id}`);
+          }}
+          className="rounded-lg bg-red-700 px-3 py-2 text-xs font-bold text-white disabled:opacity-40"
+        >
+          Reject
+        </button>
+      </div>
+    );
+  }
+  if ((order.status === "accepted" || order.status === "preparing") && order.provider !== "lieferando") {
+    return (
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => void mutate(path, { type: "ready" }, `ready-${order.id}`)}
+        className="ml-auto block rounded-lg bg-blue-700 px-3 py-2 text-xs font-bold text-white disabled:opacity-40"
+      >
+        Mark ready
+      </button>
+    );
+  }
+  return <span className="block text-right text-xs text-stone-400">No action</span>;
 }
 
 function StatusBadge({ ready, configured }: { ready: boolean; configured: boolean }) {

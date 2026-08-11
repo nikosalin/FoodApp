@@ -34,9 +34,17 @@ function businessSuffix(businessId: SupportedBusinessId) {
 
 export function stripeConfig(businessId: SupportedBusinessId) {
   const suffix = businessSuffix(businessId);
+  const connectedAccountId = required(`STRIPE_ACCOUNT_ID_${suffix}`);
+  if (!/^acct_[A-Za-z0-9]+$/.test(connectedAccountId)) {
+    throw new PaymentError(
+      `Payment configuration is invalid: STRIPE_ACCOUNT_ID_${suffix} must be a Stripe connected account ID`,
+      503,
+      "payment_configuration_invalid",
+    );
+  }
   return {
     secretKey: required("STRIPE_SECRET_KEY"),
-    connectedAccountId: required(`STRIPE_ACCOUNT_ID_${suffix}`),
+    connectedAccountId,
     webhookSecret: required("STRIPE_WEBHOOK_SECRET"),
   };
 }

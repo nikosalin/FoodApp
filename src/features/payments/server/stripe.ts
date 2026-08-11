@@ -19,17 +19,26 @@ async function stripeRequest(
   idempotencyKey: string,
 ) {
   const config = stripeConfig(businessId);
-  const response = await fetch(`${stripeApiUrl}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${config.secretKey}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-      "Idempotency-Key": idempotencyKey,
-      "Stripe-Account": config.connectedAccountId,
-    },
-    body,
-    cache: "no-store",
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${stripeApiUrl}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${config.secretKey}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Idempotency-Key": idempotencyKey,
+        "Stripe-Account": config.connectedAccountId,
+      },
+      body,
+      cache: "no-store",
+    });
+  } catch {
+    throw new PaymentError(
+      "Stripe is temporarily unreachable",
+      502,
+      "stripe_unavailable",
+    );
+  }
   if (!response.ok) {
     throw safeProviderError(
       "Stripe",

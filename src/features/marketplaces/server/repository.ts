@@ -15,6 +15,15 @@ type MarketplaceEventInput = {
   safeMetadata?: Record<string, string | number | boolean | null>;
 };
 
+export type MarketplaceActionTarget = {
+  id: string;
+  connection_id: string;
+  provider: MarketplaceProvider;
+  external_order_id: string;
+  status: string;
+  external_store_id: string;
+};
+
 export async function getMarketplaceDashboardRows(businessIds: string[]) {
   if (businessIds.length === 0) return { connections: [], orders: [] };
   const filter = businessIds.join(",");
@@ -56,6 +65,87 @@ export async function recordMarketplaceEvent(input: MarketplaceEventInput) {
   return { connected: Boolean(connectionId) };
 }
 
+export async function getMarketplaceActionTarget(
+  orderId: string,
+  businessIds: string[],
+) {
+  if (!/^[0-9a-f-]{36}$/i.test(orderId) || businessIds.length === 0) return null;
+  const orders = await marketplaceRest<Array<{
+    id: string;
+    connection_id: string;
+    provider: MarketplaceProvider;
+    external_order_id: string;
+    status: string;
+  }>>(
+    `/marketplace_orders?select=id,connection_id,provider,external_order_id,status&id=eq.${orderId}&business_id=in.(${businessIds.join(",")})&limit=1`,
+  );
+  const order = orders[0];
+  if (!order) return null;
+  const connections = await marketplaceRest<Array<{ external_store_id: string }>>(
+    `/marketplace_connections?select=external_store_id&id=eq.${order.connection_id}&limit=1`,
+  );
+  return connections[0] ? { ...order, external_store_id: connections[0].external_store_id } : null;
+}
+
+export async function getMarketplaceConnectionTarget(
+  connectionId: string,
+  businessIds: string[],
+) {
+  if (!/^[0-9a-f-]{36}$/i.test(connectionId) || businessIds.length === 0) return null;
+  const rows = await marketplaceRest<Array<{
+    id: string;
+    provider: MarketplaceProvider;
+    external_store_id: string;
+  }>>(
+    `/marketplace_connections?select=id,provider,external_store_id&id=eq.${connectionId}&business_id=in.(${businessIds.join(",")})&limit=1`,
+  );
+  return rows[0] ?? null;
+}
+
+export async function updateMarketplaceOrderAfterAction(
+  orderId: string,
+  status: string,
+  preparationMinutes?: number,
+) {
+  const timestamps =
+    status === "accepted"
+      ? { accepted_at: new Date().toISOString() }
+      : status === "ready"
+        ? { ready_at: new Date().toISOString() }
+        : status === "rejected" || status === "cancelled"
+          ? { closed_at: new Date().toISOString() }
+          : {};
+  const response = await marketplaceRestRaw(`/marketplace_orders?id=eq.${orderId}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: JSON.stringify({
+      status,
+      preparation_minutes: preparationMinutes ?? undefined,
+      ...timestamps,
+    }),
+  });
+  if (!response.ok) throw new Error(`marketplace_order_update_${response.status}`);
+}
+
+export async function updateMarketplaceConnectionAvailability(
+  connectionId: string,
+  online: boolean,
+) {
+  const response = await marketplaceRestRaw(
+    `/marketplace_connections?id=eq.${connectionId}`,
+    {
+      method: "PATCH",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify({
+        status: online ? "active" : "disabled",
+        last_sync_at: new Date().toISOString(),
+        last_error_code: null,
+      }),
+    },
+  );
+  if (!response.ok) throw new Error(`marketplace_connection_update_${response.status}`);
+}
+
 async function marketplaceRest<T>(path: string): Promise<T> {
   const response = await marketplaceRestRaw(path);
   if (!response.ok) throw new Error(`marketplace_repository_${response.status}`);
@@ -77,4 +167,3 @@ function marketplaceRestRaw(path: string, init?: RequestInit) {
     cache: "no-store",
   });
 }
-

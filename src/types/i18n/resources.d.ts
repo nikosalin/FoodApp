@@ -24,6 +24,11 @@ export default interface Resources {
       "stripeNotConfigured": "Stripe is not configured for this restaurant."
     },
     "eyebrow": "Checkout",
+    "notes": {
+      "label": "Notes (optional)",
+      "placeholder": "For example: Please cook well done or call when you arrive.",
+      "title": "Order comment"
+    },
     "orderType": {
       "table": {
         "description": "Order for your table",
@@ -215,7 +220,7 @@ export default interface Resources {
           "name": "Bifteki"
         },
         "grillPlatter": {
-          "description": "Gyros, one souvlaki skewer, and one soutzoukaki.",
+          "description": "Gyros, souvlaki skewer, soutzoukaki, onions, and oregano.",
           "name": "Grill Platter"
         },
         "porkSouvlaki": {
@@ -232,19 +237,19 @@ export default interface Resources {
     "gyrosPita": {
       "items": {
         "gyrosBox": {
-          "description": "Gyros, fries, onions, and a sauce of your choice.",
+          "description": "Gyros, fries, onions, oregano, ketchup, mayonnaise, and mustard.",
           "name": "Gyros Box"
         },
         "gyrosMetaxa": {
-          "description": "Baked with feta and onions, served with salad or fries.",
+          "description": "Gyros, feta, onions, oregano, salad, fries, ketchup, mayonnaise, and mustard.",
           "name": "Gyros Metaxa"
         },
         "gyrosMetaxaRiceNoodles": {
-          "description": "Rice noodles, baked with feta and onions.",
+          "description": "Gyros, rice noodles, feta, onions, and oregano.",
           "name": "Gyros Metaxa with Rice Noodles"
         },
         "gyrosPitaSaloniki": {
-          "description": "With cabbage slaw and tzatziki.",
+          "description": "Cabbage slaw, tzatziki, and onions.",
           "name": "Gyros Pita Saloniki"
         },
         "gyrosPitaSpecial": {
@@ -256,15 +261,15 @@ export default interface Resources {
           "name": "Gyros Pita with Salad"
         },
         "gyrosPlain": {
-          "description": "Just gyros and onions, no extras.",
+          "description": "Gyros, onions, and oregano.",
           "name": "Gyros, Plain"
         },
         "gyrosPlate": {
-          "description": "Served with a side of your choice.",
+          "description": "Gyros, tzatziki, fries, onions, oregano, ketchup, mayonnaise, and mustard.",
           "name": "Gyros Plate"
         },
         "pitaNoGyros": {
-          "description": "No gyros — just pita, fries, and tzatziki.",
+          "description": "Pita bread, fries, tzatziki, ketchup, mayonnaise, and mustard.",
           "name": "Pita with Fries & Tzatziki"
         },
         "vegetarianPita": {
@@ -285,27 +290,27 @@ export default interface Resources {
           "name": "Farmer's Salad"
         },
         "fetaSalad": {
-          "description": "Creamy Greek feta, served simply.",
+          "description": "Feta, olive oil, and oregano.",
           "name": "Feta Salad"
         },
         "mixedSalad": {
-          "description": "A fresh mix of seasonal vegetables.",
+          "description": "Lettuce, tomatoes, cucumber, onions, and corn.",
           "name": "Mixed Salad"
         },
         "olives": {
-          "description": "A bowl of marinated Greek olives.",
+          "description": "Olives, olive oil, and herbs.",
           "name": "Olives"
         },
         "peperoni": {
-          "description": "Pickled Greek peppers, mild and tangy.",
+          "description": "Pepperoncini, olive oil, and garlic.",
           "name": "Pepperoncini"
         },
         "tzatzikiPortion": {
-          "description": "Cool yogurt, cucumber, and garlic dip.",
+          "description": "Yogurt, cucumber, and garlic.",
           "name": "Tzatziki Portion"
         },
         "whiteCabbageSalad": {
-          "description": "Crisp, lightly dressed cabbage slaw.",
+          "description": "White cabbage, vinegar, oil, and seasoning.",
           "name": "White Cabbage Salad"
         }
       },
@@ -351,11 +356,11 @@ export default interface Resources {
           "name": "Currywurst"
         },
         "currywurstFries": {
-          "description": "Our currywurst, served with fries.",
+          "description": "Currywurst, fries, ketchup, mayonnaise, and mustard.",
           "name": "Currywurst with Fries"
         },
         "fries": {
-          "description": "Classic crispy fries.",
+          "description": "Fries, ketchup, mayonnaise, and mustard.",
           "name": "Fries"
         },
         "plainPitaBread": {

@@ -13,7 +13,7 @@ const definitions: Record<MarketplaceProvider, {
 }> = {
   wolt: {
     label: "Wolt",
-    variables: ["WOLT_CLIENT_ID", "WOLT_CLIENT_SECRET", "WOLT_VENUE_ID"],
+    variables: ["WOLT_ACCESS_TOKEN", "WOLT_VENUE_ID", "WOLT_WEBHOOK_SECRET"],
     capabilities: ["Orders", "Menu", "Availability", "Preparation status"],
   },
   uber_eats: {
@@ -62,7 +62,7 @@ export function providerMode(provider: MarketplaceProvider): MarketplaceMode {
 export function providerWebhookSecret(provider: MarketplaceProvider) {
   const name =
     provider === "wolt"
-      ? "WOLT_CLIENT_SECRET"
+      ? "WOLT_WEBHOOK_SECRET"
       : provider === "uber_eats"
         ? "UBER_EATS_CLIENT_SECRET"
         : "JET_CONNECT_WEBHOOK_TOKEN";
@@ -74,4 +74,3 @@ function providerEnvPrefix(provider: MarketplaceProvider) {
   if (provider === "uber_eats") return "UBER_EATS";
   return "JET_CONNECT";
 }
-

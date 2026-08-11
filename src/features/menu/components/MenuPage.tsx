@@ -29,7 +29,6 @@
 // }
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { MenuCategoriesList } from "../data/menu-categories";
@@ -40,22 +39,10 @@ export function MenuPage() {
   const { t } = useTranslation(["menu", "food"]);
   const menuCategories = useMemo(() => MenuCategoriesList(t), [t]);
 
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const requestedId = searchParams.get("category");
-  const initialActiveId =
-    requestedId &&
-    menuCategories.some((category) => category.id === requestedId)
-      ? requestedId
-      : menuCategories[0].id;
-  const [activeId, setActiveId] = useState(initialActiveId);
+  const [activeId, setActiveId] = useState(menuCategories[0].id);
   const scrollTargetRef = useRef<string | undefined>(undefined);
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
-  );
-  const initialScrollIdRef = useRef<string | undefined>(
-    requestedId ? initialActiveId : undefined,
   );
 
   useEffect(() => {
@@ -108,15 +95,7 @@ export function MenuPage() {
     };
   }, [menuCategories]);
 
-  useEffect(() => {
-    const initialScrollId = initialScrollIdRef.current;
-    if (!initialScrollId) return;
-    initialScrollIdRef.current = undefined;
-    document.getElementById(initialScrollId)?.scrollIntoView();
-  }, [menuCategories]);
-
   const handleSelect = (id: string) => {
-    router.replace(`/menu?category=${id}`, { scroll: false });
     scrollTargetRef.current = id;
     if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
     setActiveId(id);

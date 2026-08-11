@@ -19,6 +19,11 @@
     "email": "E-Mail",
     "phone": "Telefon (optional)"
   },
+  "notes": {
+    "title": "Kommentar zur Bestellung",
+    "label": "Anmerkungen (optional)",
+    "placeholder": "Zum Beispiel: Bitte gut durchbraten oder anrufen, wenn du da bist."
+  },
   "payment": {
     "title": "Zahlung",
     "card": {

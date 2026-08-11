@@ -27,6 +27,7 @@ export function CheckoutPage({
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [customerNotes, setCustomerNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [stripeStep, setStripeStep] = useState<StripeStep>();
@@ -60,6 +61,7 @@ export function CheckoutPage({
           customerName,
           customerEmail,
           customerPhone,
+          customerNotes,
           preferredChannel: "email",
           paymentMethod,
           onlinePaymentProvider:
@@ -212,6 +214,23 @@ export function CheckoutPage({
                 />
               </Field>
             </div>
+          </CheckoutSection>
+
+          <CheckoutSection title={t("notes.title")}>
+            <label className="block text-sm font-semibold text-pita">
+              {t("notes.label")}
+              <textarea
+                value={customerNotes}
+                onChange={(event) => setCustomerNotes(event.target.value)}
+                maxLength={500}
+                rows={4}
+                placeholder={t("notes.placeholder")}
+                className="mt-2 w-full resize-y rounded-xl border border-pita/20 bg-char px-4 py-3 text-pita outline-none placeholder:text-pita/35 focus:border-lemon"
+              />
+              <span className="mt-1 block text-right text-xs text-pita/45">
+                {customerNotes.length}/500
+              </span>
+            </label>
           </CheckoutSection>
 
           <CheckoutSection title={t("payment.title")}>

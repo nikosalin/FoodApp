@@ -123,6 +123,8 @@ export function validateOrderInput(
       : "";
   const customerPhone =
     typeof body.customerPhone === "string" ? body.customerPhone.trim() : "";
+  const customerNotes =
+    typeof body.customerNotes === "string" ? body.customerNotes.trim() : "";
   const preferredChannel = body.preferredChannel;
   const orderType = body.orderType;
   const paymentMethod = body.paymentMethod;
@@ -148,6 +150,12 @@ export function validateOrderInput(
     !/^\+?[0-9 ()-]{7,24}$/.test(customerPhone)
   ) {
     throw new OrderRepositoryError("Invalid phone number", 400);
+  }
+  if (customerNotes.length > 500) {
+    throw new OrderRepositoryError(
+      "Order comments must not exceed 500 characters",
+      400,
+    );
   }
   if (
     preferredChannel !== "email" &&
@@ -258,6 +266,7 @@ export function validateOrderInput(
     customerName,
     customerEmail: customerEmail || undefined,
     customerPhone: customerPhone || undefined,
+    customerNotes: customerNotes || undefined,
     preferredChannel,
     paymentMethod,
     onlinePaymentProvider:
