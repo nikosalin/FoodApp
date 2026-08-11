@@ -5,6 +5,7 @@ import {
   FileText,
   LayoutDashboard,
   LogOut,
+  RadioTower,
   Shield,
   Store,
 } from "lucide-react";
@@ -17,6 +18,7 @@ const navigation = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/requests", label: "Pending Requests", icon: FileText },
   { href: "/admin/restaurants", label: "All Restaurants", icon: Store },
+  { href: "/admin/channels", label: "Delivery Channels", icon: RadioTower },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
 ];
 

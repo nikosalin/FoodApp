@@ -53,6 +53,10 @@ export const useCartStore = create<CartState>()(
 
       clearCart: () => set({ items: [], restaurantId: null }),
     }),
-    { name: "opa-cart", version: 3 },
+    {
+      name: "opa-cart",
+      version: 3,
+      skipHydration: true,
+    },
   ),
 );

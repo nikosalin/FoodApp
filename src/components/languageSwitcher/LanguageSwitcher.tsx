@@ -95,12 +95,17 @@ import germanFlag from "@/assets/flags/german_flag.svg";
 export default function LanguageSwitcher() {
   const { i18n } = useTranslation();
 
-  const current = i18n.language;
+  const current = i18n.resolvedLanguage ?? i18n.language;
+
+  function selectLanguage(language: "en" | "de") {
+    window.localStorage.setItem("i18nextLng", language);
+    void i18n.changeLanguage(language);
+  }
 
   return (
     <div className="flex items-center gap-2 rounded-full bg-secondary-foreground/20 p-1">
       <button
-        onClick={() => i18n.changeLanguage("en")}
+        onClick={() => selectLanguage("en")}
         className={`rounded-full p-1 transition ${
           current === "en" ? "bg-white shadow" : "opacity-60 hover:opacity-100"
         }`}
@@ -110,7 +115,7 @@ export default function LanguageSwitcher() {
       </button>
 
       <button
-        onClick={() => i18n.changeLanguage("de")}
+        onClick={() => selectLanguage("de")}
         className={`rounded-full p-1 transition ${
           current === "de" ? "bg-white shadow" : "opacity-60 hover:opacity-100"
         }`}
