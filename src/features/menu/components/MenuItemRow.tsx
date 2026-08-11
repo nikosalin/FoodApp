@@ -11,7 +11,7 @@ export function MenuItemRow({
   restaurantId = "restaurant-1",
 }: MenuItemView) {
   return (
-    <article className="group relative flex min-h-0 cursor-pointer gap-3 border-b border-char/10 bg-white px-1 py-4 transition last:border-b-0 focus-within:ring-4 focus-within:ring-tomato/25 md:min-h-44 md:flex-col md:justify-between md:gap-6 md:rounded-3xl md:border md:p-6 md:shadow-[0_18px_50px_rgba(43,36,32,0.08)] md:hover:-translate-y-1 md:hover:shadow-[0_24px_60px_rgba(43,36,32,0.14)]">
+    <article className="group relative flex min-h-0 cursor-pointer gap-3 border-b border-char/10 bg-white px-4 py-4 transition last:border-b-0 focus-within:ring-4 focus-within:ring-tomato/25 md:min-h-44 md:flex-col md:justify-between md:gap-6 md:rounded-3xl md:border md:p-6 md:shadow-[0_18px_50px_rgba(43,36,32,0.08)] md:hover:-translate-y-1 md:hover:shadow-[0_24px_60px_rgba(43,36,32,0.14)]">
       <div className="min-w-0 flex-1">
         <span className="mb-2 hidden h-1 w-12 rounded-full bg-tomato transition-all group-hover:w-20 md:block" />
         <h4 className="text-base font-black uppercase tracking-wide text-char md:text-xl">{name}</h4>

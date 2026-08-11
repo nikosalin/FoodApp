@@ -41,7 +41,7 @@ export function MenuCategoryNav({
   useEffect(() => {
     navRef.current
       ?.querySelector<HTMLElement>(`[data-category-id="${activeId}"]`)
-      ?.scrollIntoView({ block: "nearest", inline: "center" });
+      ?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
   }, [activeId]);
 
   return (
