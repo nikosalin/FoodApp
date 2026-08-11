@@ -23,6 +23,8 @@
 //     </nav>
 //   );
 // }
+import { useEffect, useRef } from "react";
+
 interface MenuCategoryNavProps {
   categories: { id: string; label: string }[];
   activeId: string;
@@ -34,14 +36,23 @@ export function MenuCategoryNav({
   activeId,
   onSelect,
 }: MenuCategoryNavProps) {
+  const navRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    navRef.current
+      ?.querySelector<HTMLElement>(`[data-category-id="${activeId}"]`)
+      ?.scrollIntoView({ block: "nearest", inline: "center" });
+  }, [activeId]);
+
   return (
-    <nav className="sticky top-16 z-40 overflow-x-auto border-b border-char/10 bg-[#f7f1e8]/95 shadow-sm backdrop-blur">
+    <nav ref={navRef} className="sticky top-16 z-40 overflow-x-auto border-b border-char/10 bg-[#f7f1e8]/95 shadow-sm backdrop-blur">
       <div className="mx-auto flex max-w-7xl gap-2 px-4 py-4">
         {categories.map((category) => {
           const isActive = category.id === activeId;
           return (
             <button
               key={category.id}
+              data-category-id={category.id}
               onClick={() => onSelect(category.id)}
               className={`whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
                 isActive

@@ -1,6 +1,9 @@
 {
   "pageTitle": "Our Menu",
   "addButton": "Add",
+  "popular": {
+    "label": "MOST POPULAR"
+  },
   "customize": {
     "open": "Customize",
     "eyebrow": "Make it yours",

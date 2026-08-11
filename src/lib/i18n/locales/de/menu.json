@@ -1,6 +1,9 @@
 {
   "pageTitle": "Unsere Speisekarte",
   "addButton": "Hinzufügen",
+  "popular": {
+    "label": "AM HÄUFIGSTEN BESTELLT"
+  },
   "customize": {
     "open": "Anpassen",
     "eyebrow": "Nach deinem Geschmack",

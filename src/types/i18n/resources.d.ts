@@ -275,6 +275,9 @@ export default interface Resources {
       "label": "GYROS & PITA"
     },
     "pageTitle": "Our Menu",
+    "popular": {
+      "label": "MOST POPULAR"
+    },
     "salads": {
       "items": {
         "farmersSalad": {

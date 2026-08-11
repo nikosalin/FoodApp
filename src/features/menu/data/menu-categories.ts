@@ -175,6 +175,24 @@ import type { MenuCategoryView } from "../types";
 
 export const MenuCategoriesList = (t: TFunction): MenuCategoryView[] => [
   {
+    id: "popular",
+    label: t("popular.label"),
+    items: [
+      {
+        id: "gyrosPlate",
+        name: t("gyrosPita.items.gyrosPlate.name"),
+        description: t("gyrosPita.items.gyrosPlate.description"),
+        price: 16.5,
+      },
+      {
+        id: "gyrosPitaSaloniki",
+        name: t("gyrosPita.items.gyrosPitaSaloniki.name"),
+        description: t("gyrosPita.items.gyrosPitaSaloniki.description"),
+        price: 8.5,
+      },
+    ],
+  },
+  {
     id: "salads",
     label: t("salads.label"),
     items: [
