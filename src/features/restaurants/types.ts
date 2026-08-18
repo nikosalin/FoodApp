@@ -25,6 +25,9 @@ export type RestaurantAvailability = {
   restaurantId: string;
   timezone: "Europe/Berlin";
   acceptingOrders: boolean;
+  acceptsTable: boolean;
+  acceptsTakeaway: boolean;
+  acceptsDelivery: boolean;
   cashOnDeliveryEnabled: boolean;
   source: "schedule" | "override" | "restaurant_blocked";
   message: string;

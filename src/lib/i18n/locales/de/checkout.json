@@ -8,11 +8,29 @@
       "label": "Abholung",
       "description": "Im Restaurant abholen"
     },
+    "delivery": {
+      "label": "Lieferung",
+      "description": "Lieferung an deine Adresse"
+    },
     "table": {
-      "label": "Im Restaurant",
-      "description": "Für deinen Tisch bestellen"
+      "label": "Vor Ort essen",
+      "description": "An deinen Tisch bestellen"
     },
     "tableNumberLabel": "Tischnummer"
+  },
+  "delivery": {
+    "title": "Lieferadresse in Deutschland",
+    "street": "Straße und Hausnummer",
+    "postalCode": "Postleitzahl",
+    "city": "Stadt",
+    "check": "Lieferung prüfen",
+    "checking": "Adresse wird geprüft…",
+    "distance": "Entfernung: {{distance}} km",
+    "quote": "Mindestbestellwert: €{{minimum}} · Liefergebühr: €{{fee}}",
+    "minimumMissing": "Füge noch €{{amount}} hinzu, um den Mindestbestellwert zu erreichen.",
+    "errors": {
+      "quoteFailed": "Die Lieferadresse konnte nicht geprüft werden."
+    }
   },
   "contact": {
     "title": "Kontaktdaten",
@@ -35,6 +53,10 @@
       "label": "Bar",
       "descriptionTakeaway": "Bei Abholung bezahlen",
       "descriptionTable": "Am Tisch bezahlen"
+    },
+    "cashOnDelivery": {
+      "label": "Bar bei Lieferung",
+      "description": "Beim Fahrer bezahlen, wenn die Bestellung ankommt"
     }
   },
   "summary": {
@@ -47,7 +69,8 @@
     "priceDisclaimer": "Menüpreise werden erneut vom Server geprüft.",
     "securePayment": "Sicherer Bestellvorgang",
     "without": "Ohne",
-    "extra": "Extra"
+    "extra": "Extra",
+    "deliveryFee": "Liefergebühr"
   },
   "emptyCart": {
     "title": "Dein Warenkorb ist leer",

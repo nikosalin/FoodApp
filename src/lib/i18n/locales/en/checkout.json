@@ -5,14 +5,32 @@
   "orderType": {
     "title": "Order type",
     "takeaway": {
-      "label": "Takeaway",
-      "description": "Pick up at the restaurant"
+      "label": "Pickup",
+      "description": "Collect from the restaurant"
+    },
+    "delivery": {
+      "label": "Delivery",
+      "description": "Delivered to your address"
     },
     "table": {
-      "label": "At the restaurant",
-      "description": "Order for your table"
+      "label": "Eat in",
+      "description": "Order to your table"
     },
     "tableNumberLabel": "Table number"
+  },
+  "delivery": {
+    "title": "Delivery address in Germany",
+    "street": "Street and house number",
+    "postalCode": "Postal code",
+    "city": "City",
+    "check": "Check delivery",
+    "checking": "Checking address…",
+    "distance": "Distance: {{distance}} km",
+    "quote": "Minimum order: €{{minimum}} · Delivery fee: €{{fee}}",
+    "minimumMissing": "Add €{{amount}} more to reach the minimum order.",
+    "errors": {
+      "quoteFailed": "The delivery address could not be checked."
+    }
   },
   "contact": {
     "title": "Contact details",
@@ -35,6 +53,10 @@
       "label": "Cash",
       "descriptionTakeaway": "Pay when you pick up",
       "descriptionTable": "Pay at your table"
+    },
+    "cashOnDelivery": {
+      "label": "Cash on delivery",
+      "description": "Pay the driver when your order arrives"
     }
   },
   "summary": {
@@ -47,7 +69,8 @@
     "priceDisclaimer": "Menu prices are verified again by the server.",
     "securePayment": "Secure checkout",
     "without": "Without",
-    "extra": "Extra"
+    "extra": "Extra",
+    "deliveryFee": "Delivery fee"
   },
   "emptyCart": {
     "title": "Your cart is empty",

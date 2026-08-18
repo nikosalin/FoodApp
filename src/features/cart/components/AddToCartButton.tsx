@@ -55,7 +55,7 @@ export function AddToCartButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="absolute inset-0 rounded-3xl focus:outline-none"
+        className="absolute inset-0 z-10 rounded-3xl focus:outline-none"
         aria-label={`${t("customize.open")} ${name}`}
       />
 

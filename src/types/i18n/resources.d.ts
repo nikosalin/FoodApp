@@ -14,6 +14,20 @@ export default interface Resources {
       "phone": "Τηλέφωνο (προαιρετικό)",
       "title": "Στοιχεία επικοινωνίας"
     },
+    "delivery": {
+      "check": "Έλεγχος παράδοσης",
+      "checking": "Έλεγχος διεύθυνσης…",
+      "city": "Πόλη",
+      "distance": "Απόσταση: {{distance}} χλμ.",
+      "errors": {
+        "quoteFailed": "Δεν ήταν δυνατός ο έλεγχος της διεύθυνσης παράδοσης."
+      },
+      "minimumMissing": "Προσθέστε ακόμη €{{amount}} για την ελάχιστη παραγγελία.",
+      "postalCode": "Ταχυδρομικός κώδικας",
+      "quote": "Ελάχιστη παραγγελία: €{{minimum}} · Κόστος παράδοσης: €{{fee}}",
+      "street": "Οδός και αριθμός",
+      "title": "Διεύθυνση παράδοσης στη Γερμανία"
+    },
     "editCart": "Επεξεργασία καλαθιού",
     "emptyCart": {
       "browseMenu": "Περιηγηθείτε στο μενού",
@@ -31,8 +45,12 @@ export default interface Resources {
       "title": "Σχόλιο παραγγελίας"
     },
     "orderType": {
+      "delivery": {
+        "description": "Παράδοση στη διεύθυνσή σας",
+        "label": "Παράδοση"
+      },
       "table": {
-        "description": "Παραγγελία για το τραπέζι σας",
+        "description": "Παραγγελία στο τραπέζι σας",
         "label": "Στο εστιατόριο"
       },
       "tableNumberLabel": "Αριθμός τραπεζιού",
@@ -52,12 +70,17 @@ export default interface Resources {
         "descriptionTakeaway": "Πληρωμή κατά την παραλαβή",
         "label": "Μετρητά"
       },
+      "cashOnDelivery": {
+        "description": "Πληρωμή στον οδηγό κατά την παράδοση",
+        "label": "Μετρητά κατά την παράδοση"
+      },
       "title": "Πληρωμή"
     },
     "summary": {
       "continuePayment": "Συνέχεια στην πληρωμή",
       "continueToPayment": "Συνέχεια στην ασφαλή πληρωμή",
       "creatingOrder": "Δημιουργία παραγγελίας…",
+      "deliveryFee": "Κόστος παράδοσης",
       "extra": "Έξτρα",
       "placeOrder": "Υποβολή παραγγελίας",
       "priceDisclaimer": "Οι τιμές του μενού επαληθεύονται ξανά από τον διακομιστή.",

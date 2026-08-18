@@ -2,14 +2,18 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { ArrowLeft, CreditCard, LockKeyhole, ShoppingBag, Utensils } from "lucide-react";
+import { ArrowLeft, Banknote, Bike, CreditCard, LockKeyhole, MapPin, ShoppingBag, Utensils } from "lucide-react";
 import { useCartStore } from "@/features/cart/store/useCartStore";
 import { getCartTotal } from "@/features/cart/lib/selectors";
 import { StripePaymentStep } from "@/features/payments/components/StripePaymentStep";
 import { OrderType, PaymentMethod, StripeStep } from "../types";
 import { useTranslation } from "react-i18next";
+import type {
+  DeliveryQuote,
+  RestaurantAvailability,
+} from "@/features/restaurants/types";
 
 export function CheckoutPage({
   stripePublishableKey,
@@ -21,25 +25,121 @@ export function CheckoutPage({
   const restaurantId = useCartStore((state) => state.restaurantId);
   const clearCart = useCartStore((state) => state.clearCart);
   const idempotencyKey = useRef(crypto.randomUUID());
-  const [orderType, setOrderType] = useState<OrderType>("takeaway");
+  const [orderType, setOrderType] = useState<OrderType>("delivery");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("online");
   const [tableNumber, setTableNumber] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerNotes, setCustomerNotes] = useState("");
+  const [deliveryStreet, setDeliveryStreet] = useState("");
+  const [deliveryPostalCode, setDeliveryPostalCode] = useState("");
+  const [deliveryCity, setDeliveryCity] = useState("");
+  const [availability, setAvailability] = useState<RestaurantAvailability>();
+  const [deliveryQuote, setDeliveryQuote] = useState<DeliveryQuote>();
+  const [quoteFingerprint, setQuoteFingerprint] = useState("");
+  const [quoteBusy, setQuoteBusy] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [stripeStep, setStripeStep] = useState<StripeStep>();
   const [paymentOpen, setPaymentOpen] = useState(false);
 
-  const total = getCartTotal(items);
+  const subtotal = getCartTotal(items);
+  const deliveryFingerprint = JSON.stringify([
+    deliveryStreet.trim(),
+    deliveryPostalCode,
+    deliveryCity.trim(),
+    subtotal,
+  ]);
+  const activeDeliveryQuote =
+    quoteFingerprint === deliveryFingerprint ? deliveryQuote : undefined;
+  const total =
+    subtotal +
+    (orderType === "delivery" ? activeDeliveryQuote?.deliveryFee ?? 0 : 0);
 
   const { t } = useTranslation("checkout");
 
+  useEffect(() => {
+    if (!restaurantId) return;
+    let active = true;
+    fetch(`/api/restaurants/${encodeURIComponent(restaurantId)}/availability`, {
+      cache: "no-store",
+    })
+      .then((response) => response.json())
+      .then((body: { availability?: RestaurantAvailability }) => {
+        if (!active || !body.availability) return;
+        const nextAvailability = body.availability;
+        setAvailability(nextAvailability);
+        setOrderType((current) => {
+          if (current === "takeaway" && nextAvailability.acceptsTakeaway) return current;
+          if (current === "table" && nextAvailability.acceptsTable) return current;
+          if (current === "delivery" && nextAvailability.acceptsDelivery) return current;
+          if (nextAvailability.acceptsTakeaway) return "takeaway";
+          if (nextAvailability.acceptsTable) return "table";
+          return "delivery";
+        });
+        if (!nextAvailability.cashOnDeliveryEnabled) {
+          setPaymentMethod((current) =>
+            current === "cash_on_delivery" ? "online" : current,
+          );
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [restaurantId]);
+
+  async function requestDeliveryQuote() {
+    if (!restaurantId) return;
+    setQuoteBusy(true);
+    setError("");
+    try {
+      const response = await fetch(
+        `/api/restaurants/${encodeURIComponent(restaurantId)}/delivery-quote`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            address: {
+              street: deliveryStreet,
+              postalCode: deliveryPostalCode,
+              city: deliveryCity,
+              countryCode: "DE",
+            },
+            subtotal,
+          }),
+        },
+      );
+      const body = (await response.json()) as {
+        quote?: DeliveryQuote;
+        error?: string;
+      };
+      if (!response.ok || !body.quote) {
+        throw new Error(body.error ?? t("delivery.errors.quoteFailed"));
+      }
+      setDeliveryQuote(body.quote);
+      setQuoteFingerprint(deliveryFingerprint);
+    } catch (reason) {
+      setDeliveryQuote(undefined);
+      setQuoteFingerprint("");
+      setError(
+        reason instanceof Error ? reason.message : t("delivery.errors.quoteFailed"),
+      );
+    } finally {
+      setQuoteBusy(false);
+    }
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy || !restaurantId || items.length === 0) return;
+    if (
+      busy ||
+      !restaurantId ||
+      items.length === 0 ||
+      (orderType === "delivery" &&
+        (!activeDeliveryQuote || !activeDeliveryQuote.minimumMet))
+    ) return;
     if (stripeStep) {
       setPaymentOpen(true);
       return;
@@ -58,6 +158,15 @@ export function CheckoutPage({
           restaurantId,
           orderType,
           tableNumber: orderType === "table" ? tableNumber : undefined,
+          deliveryAddress:
+            orderType === "delivery"
+              ? {
+                  street: deliveryStreet,
+                  postalCode: deliveryPostalCode,
+                  city: deliveryCity,
+                  countryCode: "DE",
+                }
+              : undefined,
           customerName,
           customerEmail,
           customerPhone,
@@ -143,36 +252,57 @@ export function CheckoutPage({
     <>
       <form
         onSubmit={submit}
-        className="mx-auto grid max-w-5xl gap-8 px-4 py-10 lg:grid-cols-[1fr_22rem] lg:py-14"
+        className="mx-auto grid max-w-5xl gap-8 px-4 py-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:py-14"
       >
+        <header className="lg:col-span-2">
+          <Link href="/cart" className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline">
+            <ArrowLeft className="size-4" aria-hidden="true" />
+            {t("editCart")}
+          </Link>
+          <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary/70">
+            {t("eyebrow")}
+          </p>
+          <h1 className="mt-2 text-4xl font-black text-char">{t("title")}</h1>
+        </header>
         <div className="space-y-6">
-          <div>
-            <Link href="/cart" className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline">
-              <ArrowLeft className="size-4" aria-hidden="true" />
-              {t("editCart")}
-            </Link>
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary/70">
-              {t("eyebrow")}
-            </p>
-            <h1 className="mt-2 text-4xl font-black text-char">{t("title")}</h1>
-          </div>
-
           <CheckoutSection title={t("orderType.title")}>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <ChoiceButton
-                active={orderType === "takeaway"}
-                label={t("orderType.takeaway.label")}
-                description={t("orderType.takeaway.description")}
-                icon={ShoppingBag}
-                onClick={() => setOrderType("takeaway")}
-              />
-              <ChoiceButton
-                active={orderType === "table"}
-                label={t("orderType.table.label")}
-                description={t("orderType.table.description")}
-                icon={Utensils}
-                onClick={() => setOrderType("table")}
-              />
+            <div className="grid gap-3 sm:grid-cols-3">
+              {availability?.acceptsTakeaway !== false && (
+                <ChoiceButton
+                  active={orderType === "takeaway"}
+                  label={t("orderType.takeaway.label")}
+                  description={t("orderType.takeaway.description")}
+                  icon={ShoppingBag}
+                  onClick={() => {
+                    setOrderType("takeaway");
+                    if (paymentMethod === "cash_on_delivery") setPaymentMethod("online");
+                  }}
+                />
+              )}
+              {availability?.acceptsDelivery !== false && (
+                <ChoiceButton
+                  active={orderType === "delivery"}
+                  label={t("orderType.delivery.label")}
+                  description={t("orderType.delivery.description")}
+                  icon={Bike}
+                  onClick={() => {
+                    setOrderType("delivery");
+                    if (paymentMethod === "cash_on_site") setPaymentMethod("online");
+                  }}
+                />
+              )}
+              {availability?.acceptsTable !== false && (
+                <ChoiceButton
+                  active={orderType === "table"}
+                  label={t("orderType.table.label")}
+                  description={t("orderType.table.description")}
+                  icon={Utensils}
+                  onClick={() => {
+                    setOrderType("table");
+                    if (paymentMethod === "cash_on_delivery") setPaymentMethod("online");
+                  }}
+                />
+              )}
             </div>
             {orderType === "table" && (
               <label className="mt-4 block text-sm font-semibold text-char">
@@ -185,6 +315,78 @@ export function CheckoutPage({
                   className={inputClass}
                 />
               </label>
+            )}
+            {orderType === "delivery" && (
+              <div className="mt-5 border-t border-border pt-5">
+                <div className="flex items-center gap-2 text-sm font-black text-char">
+                  <MapPin className="size-4 text-primary" aria-hidden="true" />
+                  {t("delivery.title")}
+                </div>
+                <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                  <Field label={t("delivery.street") }>
+                    <input
+                      required
+                      value={deliveryStreet}
+                      onChange={(event) => setDeliveryStreet(event.target.value)}
+                      autoComplete="street-address"
+                      className={inputClass}
+                    />
+                  </Field>
+                  <Field label={t("delivery.postalCode") }>
+                    <input
+                      required
+                      value={deliveryPostalCode}
+                      onChange={(event) => setDeliveryPostalCode(event.target.value)}
+                      inputMode="numeric"
+                      autoComplete="postal-code"
+                      maxLength={5}
+                      className={inputClass}
+                    />
+                  </Field>
+                  <Field label={t("delivery.city") }>
+                    <input
+                      required
+                      value={deliveryCity}
+                      onChange={(event) => setDeliveryCity(event.target.value)}
+                      autoComplete="address-level2"
+                      className={inputClass}
+                    />
+                  </Field>
+                </div>
+                <button
+                  type="button"
+                  disabled={
+                    quoteBusy ||
+                    deliveryStreet.trim().length < 3 ||
+                    !/^[0-9]{5}$/.test(deliveryPostalCode) ||
+                    deliveryCity.trim().length < 2
+                  }
+                  onClick={() => void requestDeliveryQuote()}
+                  className="mt-4 h-11 rounded-xl border border-primary/25 bg-secondary px-4 text-sm font-bold text-primary transition hover:bg-secondary/70 disabled:cursor-not-allowed disabled:opacity-45"
+                >
+                  {quoteBusy ? t("delivery.checking") : t("delivery.check")}
+                </button>
+                {activeDeliveryQuote && (
+                  <div className={`mt-4 rounded-2xl p-4 text-sm ${activeDeliveryQuote.minimumMet ? "bg-emerald-50 text-emerald-900" : "bg-amber-50 text-amber-900"}`}>
+                    <p className="font-bold">
+                      {t("delivery.distance", { distance: (activeDeliveryQuote.distanceMeters / 1000).toFixed(1) })}
+                    </p>
+                    <p className="mt-1">
+                      {t("delivery.quote", {
+                        minimum: activeDeliveryQuote.minimumOrder.toFixed(2),
+                        fee: activeDeliveryQuote.deliveryFee.toFixed(2),
+                      })}
+                    </p>
+                    {!activeDeliveryQuote.minimumMet && (
+                      <p className="mt-1 font-semibold">
+                        {t("delivery.minimumMissing", {
+                          amount: (activeDeliveryQuote.minimumOrder - activeDeliveryQuote.subtotal).toFixed(2),
+                        })}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
           </CheckoutSection>
 
@@ -213,6 +415,7 @@ export function CheckoutPage({
               </Field>
               <Field label={t("contact.phone")}>
                 <input
+                  required={paymentMethod === "cash_on_delivery"}
                   type="tel"
                   autoComplete="tel"
                   value={customerPhone}
@@ -249,17 +452,28 @@ export function CheckoutPage({
                 icon={CreditCard}
                 onClick={() => setPaymentMethod("online")}
               />
-              <ChoiceButton
-                active={paymentMethod === "cash_on_site"}
-                label={t("payment.cash.label")}
-                description={
-                  orderType === "takeaway"
-                    ? t("payment.cash.descriptionTakeaway")
-                    : t("payment.cash.descriptionTable")
-                }
-                icon={ShoppingBag}
-                onClick={() => setPaymentMethod("cash_on_site")}
-              />
+              {orderType !== "delivery" && (
+                <ChoiceButton
+                  active={paymentMethod === "cash_on_site"}
+                  label={t("payment.cash.label")}
+                  description={
+                    orderType === "takeaway"
+                      ? t("payment.cash.descriptionTakeaway")
+                      : t("payment.cash.descriptionTable")
+                  }
+                  icon={Banknote}
+                  onClick={() => setPaymentMethod("cash_on_site")}
+                />
+              )}
+              {orderType === "delivery" && availability?.cashOnDeliveryEnabled && (
+                <ChoiceButton
+                  active={paymentMethod === "cash_on_delivery"}
+                  label={t("payment.cashOnDelivery.label")}
+                  description={t("payment.cashOnDelivery.description")}
+                  icon={Banknote}
+                  onClick={() => setPaymentMethod("cash_on_delivery")}
+                />
+              )}
             </div>
           </CheckoutSection>
 
@@ -299,12 +513,27 @@ export function CheckoutPage({
             ))}
           </div>
           <div className="mt-5 flex justify-between border-t border-border pt-5 text-lg font-black text-char">
-            <span>{t("summary.total")}</span>
-            <span className="text-primary">€ {total.toFixed(2)}</span>
+            <div className="w-full space-y-2">
+              {orderType === "delivery" && activeDeliveryQuote && (
+                <div className="flex justify-between text-sm font-medium text-muted-foreground">
+                  <span>{t("summary.deliveryFee")}</span>
+                  <span>€ {activeDeliveryQuote.deliveryFee.toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span>{t("summary.total")}</span>
+                <span className="text-primary">€ {total.toFixed(2)}</span>
+              </div>
+            </div>
           </div>
           <button
             type="submit"
-            disabled={busy}
+            disabled={
+              busy ||
+              availability?.acceptingOrders === false ||
+              (orderType === "delivery" &&
+                (!activeDeliveryQuote || !activeDeliveryQuote.minimumMet))
+            }
             className="mt-6 h-12 w-full rounded-full bg-primary font-black text-white shadow-[0_10px_24px_rgba(11,116,209,0.22)] transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {busy

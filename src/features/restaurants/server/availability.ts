@@ -32,6 +32,9 @@ type AvailabilityMemory = Map<
   {
     weeklyHours: WeeklyOpeningHours;
     override?: OrderingOverride;
+    acceptsTable: boolean;
+    acceptsTakeaway: boolean;
+    acceptsDelivery: boolean;
     cashOnDeliveryEnabled: boolean;
   }
 >;
@@ -51,9 +54,15 @@ function settings(restaurantId: string) {
   const created: {
     weeklyHours: WeeklyOpeningHours;
     override?: OrderingOverride;
+    acceptsTable: boolean;
+    acceptsTakeaway: boolean;
+    acceptsDelivery: boolean;
     cashOnDeliveryEnabled: boolean;
   } = {
     weeklyHours: structuredClone(defaultHours),
+    acceptsTable: true,
+    acceptsTakeaway: true,
+    acceptsDelivery: true,
     cashOnDeliveryEnabled: restaurantId === "restaurant-1",
   };
   memory().set(restaurantId, created);
@@ -74,7 +83,7 @@ export async function getRestaurantAvailability(
     const [restaurantResult, hoursResult] = await Promise.all([
       client
         .from("restaurants")
-        .select("status, accepts_cash_on_delivery, ordering_override_mode, ordering_override_until, ordering_override_reason")
+        .select("status, accepts_table, accepts_takeaway, accepts_delivery, accepts_cash_on_delivery, ordering_override_mode, ordering_override_until, ordering_override_reason")
         .eq("id", databaseId)
         .maybeSingle(),
       client
@@ -83,7 +92,9 @@ export async function getRestaurantAvailability(
         .eq("restaurant_id", databaseId),
     ]);
     if (restaurantResult.error || !restaurantResult.data || hoursResult.error) {
-      throw new Error("Unable to load restaurant availability");
+      throw new Error(
+        `Unable to load restaurant availability: ${restaurantResult.error?.message ?? hoursResult.error?.message ?? "restaurant not found"}`,
+      );
     }
     restaurantStatus = restaurantResult.data.status;
     const weeklyHours = structuredClone(defaultHours);
@@ -97,6 +108,9 @@ export async function getRestaurantAvailability(
     }
     current = {
       weeklyHours,
+      acceptsTable: restaurantResult.data.accepts_table,
+      acceptsTakeaway: restaurantResult.data.accepts_takeaway,
+      acceptsDelivery: restaurantResult.data.accepts_delivery,
       cashOnDeliveryEnabled:
         restaurantResult.data.accepts_cash_on_delivery,
       override: restaurantResult.data.ordering_override_mode
@@ -260,6 +274,9 @@ function result(
     restaurantId,
     timezone: "Europe/Berlin",
     acceptingOrders,
+    acceptsTable: current.acceptsTable,
+    acceptsTakeaway: current.acceptsTakeaway,
+    acceptsDelivery: current.acceptsDelivery,
     cashOnDeliveryEnabled: current.cashOnDeliveryEnabled,
     source,
     message,
