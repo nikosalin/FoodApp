@@ -468,7 +468,8 @@ export function CheckoutPage({
                   onClick={() => setPaymentMethod("cash_on_site")}
                 />
               )}
-              {orderType === "delivery" && availability?.cashOnDeliveryEnabled && (
+              {orderType === "delivery" &&
+                availability?.cashOnDeliveryEnabled !== false && (
                 <ChoiceButton
                   active={paymentMethod === "cash_on_delivery"}
                   label={t("payment.cashOnDelivery.label")}
@@ -476,7 +477,7 @@ export function CheckoutPage({
                   icon={Banknote}
                   onClick={() => setPaymentMethod("cash_on_delivery")}
                 />
-              )}
+                )}
             </div>
           </CheckoutSection>
 

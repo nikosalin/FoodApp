@@ -58,6 +58,8 @@ test("checkout offers pickup, delivery, and eat-in with a delivery quote", async
   await expect(page.getByRole("button", { name: /Abholung|Pickup/i }).first()).toBeVisible();
   await expect(page.getByRole("button", { name: /Lieferung|Delivery/i }).first()).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: /Vor Ort essen|Eat in/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Karte|Card/i })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: /Bar bei Lieferung|Cash on delivery/i })).toBeVisible();
 
   await page.getByLabel(/Straße und Hausnummer|Street and house number/i).fill("Torstraße 10");
   await page.getByLabel(/Postleitzahl|Postal code/i).fill("10119");
