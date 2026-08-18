@@ -1,0 +1,51 @@
+{
+  "gyrosPita": {
+    "title": "ΓΥΡΟΣ & ΠΙΤΑ",
+    "description": "Φρέσκος γύρος και ζεστή πίτα, φτιαγμένα κατόπιν παραγγελίας",
+    "imageAlt": "Πίτα με γύρο"
+  },
+  "grill": {
+    "title": "ΑΠΟ ΤΗ ΣΧΑΡΑ",
+    "description": "Κλασικές επιλογές στα κάρβουνα, κατευθείαν από τη φωτιά",
+    "imageAlt": "Κρεατικά στη σχάρα"
+  },
+  "salads": {
+    "title": "ΣΑΛΑΤΕΣ",
+    "description": "Φρέσκες συνοδευτικές επιλογές για κάθε γεύμα",
+    "imageAlt": "Ελληνική σαλάτα"
+  },
+  "sides": {
+    "title": "ΣΥΝΟΔΕΥΤΙΚΑ",
+    "description": "Πατάτες και άλλα, κλασικά ή φορτωμένα",
+    "imageAlt": "Πατάτες τηγανητές"
+  },
+  "drinksNonAlcoholic": {
+    "title": "ΑΝΑΨΥΚΤΙΚΑ",
+    "description": "Δροσερά ποτά για να συνοδεύσουν το γεύμα σας",
+    "imageAlt": "Αναψυκτικά"
+  },
+  "drinksAlcoholic": {
+    "title": "ΜΠΥΡΑ & ΚΡΑΣΙ",
+    "description": "18+ · Μια κρύα μπύρα ή ένα ποτήρι κρασί",
+    "imageAlt": "Μπύρα και κρασί"
+  },
+  "epic-gyros": {
+    "eyebrow": "ΔΟΚΙΜΑΣΕ ΤΟΝ",
+    "name": "EPIC ΓΥΡΟ"
+  },
+  "club-souvlaki": {
+    "eyebrow": "ΓΙΓΑΝΤΙΑΙΟ",
+    "name": "CLUB ΣΟΥΒΛΑΚΙ"
+  },
+  "chicken-pita": {
+    "eyebrow": "ΔΟΚΙΜΑΣΕ ΤΗΝ",
+    "name": "ΠΙΤΑ ΚΟΤΟΠΟΥΛΟ"
+  },
+  "gentle-giant": {
+    "eyebrow": "ΑΠΟΛΑΥΣΕ ΤΟ",
+    "name": "GENTLE GIANT"
+  },
+  "orderButton": {
+    "label": "Παράγγειλε τώρα"
+  }
+}

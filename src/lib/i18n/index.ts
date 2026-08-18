@@ -13,7 +13,11 @@ import deCart from "@/lib/i18n/locales/de/cart.json";
 import enCart from "@/lib/i18n/locales/en/cart.json";
 import deCheckout from "@/lib/i18n/locales/de/checkout.json";
 import enCheckout from "@/lib/i18n/locales/en/checkout.json";
-
+import grHome from "@/lib/i18n/locales/gr/home.json";
+import grFood from "@/lib/i18n/locales/gr/food.json";
+import grMenu from "@/lib/i18n/locales/gr/menu.json";
+import grCart from "@/lib/i18n/locales/gr/cart.json";
+import grCheckout from "@/lib/i18n/locales/gr/checkout.json";
 i18n
   .use(initReactI18next) // passes i18n down to react-i18next
   .init({
@@ -34,6 +38,13 @@ i18n
         menu: deMenu,
         cart: deCart,
         checkout: deCheckout,
+      },
+      gr: {
+        food: grFood,
+        home: grHome,
+        menu: grMenu,
+        cart: grCart,
+        checkout: grCheckout,
       },
     },
     fallbackLng: "de",

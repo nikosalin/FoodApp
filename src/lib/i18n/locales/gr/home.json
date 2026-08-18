@@ -1,0 +1,41 @@
+{
+  "navbar": {
+    "Logo": "Saloniki Grill"
+  },
+  "header": {
+    "title": "Επίλεξε το αγαπημένο σου"
+  },
+  "footer": {
+    "title": "Δείτε το μενού μας."
+  },
+  "hero": {
+    "eyebrow": "ΓΥΡΟΣ · ΣΧΑΡΑ · ΣΟΥΒΛΑΚΙ",
+    "title": "THE GREEKS",
+    "tagline": "Η γεύση του street food της Θεσσαλονίκης, φρέσκια κάθε μέρα.",
+    "discount": "10% έκπτωση σε κάθε παραγγελία άνω των 20€",
+    "orderButton": "Παράγγειλε online"
+  },
+  "appQr": {
+    "badge": "Στο κινητό σου",
+    "title": "Σκάναρε και παράγγειλε.",
+    "description": "Άνοιξε την κάμερα του smartphone σου και στρέψ' την προς τον κωδικό QR. Θα μεταφερθείς απευθείας στο The Greeks.",
+    "openButton": "Άνοιγμα εφαρμογής",
+    "ariaLabel": "Άνοιγμα The Greeks",
+    "qrTitle": "Κωδικός QR για το The Greeks"
+  },
+  "hours": {
+    "addressTitle": "Διεύθυνση",
+    "deliveryTitle": "Ώρες διανομής",
+    "contactTitle": "Περισσότερες πληροφορίες",
+    "closed": "Κλειστά",
+    "days": {
+      "monday": "Δευτέρα",
+      "tuesday": "Τρίτη",
+      "wednesday": "Τετάρτη",
+      "thursday": "Πέμπτη",
+      "friday": "Παρασκευή",
+      "saturday": "Σάββατο",
+      "sunday": "Κυριακή"
+    }
+  }
+}

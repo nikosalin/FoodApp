@@ -1,378 +1,378 @@
 export default interface Resources {
   "cart": {
     "cart": {
-      "backToMenu": "Browse the menu",
-      "checkoutButton": "Proceed to checkout",
-      "emptyLabel": "Your cart is empty.",
-      "title": "Your Cart"
+      "backToMenu": "Περιηγηθείτε στο μενού",
+      "checkoutButton": "Προχωρήστε στην παραγγελία",
+      "emptyLabel": "Το καλάθι σας είναι άδειο.",
+      "title": "Το καλάθι σας"
     }
   },
   "checkout": {
     "contact": {
       "email": "Email",
-      "name": "Name",
-      "phone": "Phone (optional)",
-      "title": "Contact details"
+      "name": "Όνομα",
+      "phone": "Τηλέφωνο (προαιρετικό)",
+      "title": "Στοιχεία επικοινωνίας"
     },
     "emptyCart": {
-      "browseMenu": "Browse the menu",
-      "description": "Add something from the menu before checking out.",
-      "title": "Your cart is empty"
+      "browseMenu": "Περιηγηθείτε στο μενού",
+      "description": "Προσθέστε κάτι από το μενού πριν ολοκληρώσετε την παραγγελία.",
+      "title": "Το καλάθι σας είναι άδειο"
     },
     "errors": {
-      "orderFailed": "The order could not be created.",
-      "stripeNotConfigured": "Stripe is not configured for this restaurant."
+      "orderFailed": "Δεν ήταν δυνατή η δημιουργία της παραγγελίας.",
+      "stripeNotConfigured": "Το Stripe δεν έχει ρυθμιστεί για αυτό το εστιατόριο."
     },
-    "eyebrow": "Checkout",
+    "eyebrow": "Ολοκλήρωση παραγγελίας",
     "notes": {
-      "label": "Notes (optional)",
-      "placeholder": "For example: Please cook well done or call when you arrive.",
-      "title": "Order comment"
+      "label": "Σημειώσεις (προαιρετικό)",
+      "placeholder": "Για παράδειγμα: Παρακαλώ ψήστε το καλοψημένο ή καλέστε όταν φτάσετε.",
+      "title": "Σχόλιο παραγγελίας"
     },
     "orderType": {
       "table": {
-        "description": "Order for your table",
-        "label": "At the restaurant"
+        "description": "Παραγγελία για το τραπέζι σας",
+        "label": "Στο εστιατόριο"
       },
-      "tableNumberLabel": "Table number",
+      "tableNumberLabel": "Αριθμός τραπεζιού",
       "takeaway": {
-        "description": "Pick up at the restaurant",
-        "label": "Takeaway"
+        "description": "Παραλαβή από το εστιατόριο",
+        "label": "Πακέτο"
       },
-      "title": "Order type"
+      "title": "Τύπος παραγγελίας"
     },
     "payment": {
       "card": {
-        "description": "Authorize now, capture on acceptance",
-        "label": "Card"
+        "description": "Έγκριση τώρα, χρέωση μετά την αποδοχή",
+        "label": "Κάρτα"
       },
       "cash": {
-        "descriptionTable": "Pay at your table",
-        "descriptionTakeaway": "Pay when you pick up",
-        "label": "Cash"
+        "descriptionTable": "Πληρωμή στο τραπέζι σας",
+        "descriptionTakeaway": "Πληρωμή κατά την παραλαβή",
+        "label": "Μετρητά"
       },
-      "title": "Payment"
+      "title": "Πληρωμή"
     },
     "summary": {
-      "continuePayment": "Continue payment",
-      "continueToPayment": "Continue to secure payment",
-      "creatingOrder": "Creating order…",
-      "placeOrder": "Place order",
-      "priceDisclaimer": "Menu prices are verified again by the server.",
-      "title": "Order summary",
-      "total": "Total"
+      "continuePayment": "Συνέχεια στην πληρωμή",
+      "continueToPayment": "Συνέχεια στην ασφαλή πληρωμή",
+      "creatingOrder": "Δημιουργία παραγγελίας…",
+      "placeOrder": "Υποβολή παραγγελίας",
+      "priceDisclaimer": "Οι τιμές του μενού επαληθεύονται ξανά από τον διακομιστή.",
+      "title": "Σύνοψη παραγγελίας",
+      "total": "Σύνολο"
     },
-    "title": "Complete your order"
+    "title": "Ολοκληρώστε την παραγγελία σας"
   },
   "food": {
     "chicken-pita": {
-      "eyebrow": "TASTE THE",
-      "name": "CHICKEN PITA"
+      "eyebrow": "ΔΟΚΙΜΑΣΕ ΤΗΝ",
+      "name": "ΠΙΤΑ ΚΟΤΟΠΟΥΛΟ"
     },
     "club-souvlaki": {
-      "eyebrow": "GIANT",
-      "name": "CLUB SOUVLAKI"
+      "eyebrow": "ΓΙΓΑΝΤΙΑΙΟ",
+      "name": "CLUB ΣΟΥΒΛΑΚΙ"
     },
     "drinksAlcoholic": {
-      "description": "18+ · A cold beer or a glass of wine",
-      "imageAlt": "Beer and wine",
-      "title": "BEER & WINE"
+      "description": "18+ · Μια κρύα μπύρα ή ένα ποτήρι κρασί",
+      "imageAlt": "Μπύρα και κρασί",
+      "title": "ΜΠΥΡΑ & ΚΡΑΣΙ"
     },
     "drinksNonAlcoholic": {
-      "description": "Cold drinks to go with your meal",
-      "imageAlt": "Soft drinks",
-      "title": "SOFT DRINKS"
+      "description": "Δροσερά ποτά για να συνοδεύσουν το γεύμα σας",
+      "imageAlt": "Αναψυκτικά",
+      "title": "ΑΝΑΨΥΚΤΙΚΑ"
     },
     "epic-gyros": {
-      "eyebrow": "TASTE THE",
-      "name": "EPIC GYROS"
+      "eyebrow": "ΔΟΚΙΜΑΣΕ ΤΟΝ",
+      "name": "EPIC ΓΥΡΟ"
     },
     "gentle-giant": {
-      "eyebrow": "EAT YOUR",
+      "eyebrow": "ΑΠΟΛΑΥΣΕ ΤΟ",
       "name": "GENTLE GIANT"
     },
     "grill": {
-      "description": "Charcoal-grilled classics, straight off the fire",
-      "imageAlt": "Grilled skewers",
-      "title": "FROM THE GRILL"
+      "description": "Κλασικές επιλογές στα κάρβουνα, κατευθείαν από τη φωτιά",
+      "imageAlt": "Κρεατικά στη σχάρα",
+      "title": "ΑΠΟ ΤΗ ΣΧΑΡΑ"
     },
     "gyrosPita": {
-      "description": "Fresh gyros and warm pita, made to order",
-      "imageAlt": "Gyros pita wrap",
-      "title": "GYROS & PITA"
+      "description": "Φρέσκος γύρος και ζεστή πίτα, φτιαγμένα κατόπιν παραγγελίας",
+      "imageAlt": "Πίτα με γύρο",
+      "title": "ΓΥΡΟΣ & ΠΙΤΑ"
     },
     "orderButton": {
-      "label": "Order now"
+      "label": "Παράγγειλε τώρα"
     },
     "salads": {
-      "description": "Fresh sides for every meal",
-      "imageAlt": "Greek salad",
-      "title": "SALADS"
+      "description": "Φρέσκες συνοδευτικές επιλογές για κάθε γεύμα",
+      "imageAlt": "Ελληνική σαλάτα",
+      "title": "ΣΑΛΑΤΕΣ"
     },
     "sides": {
-      "description": "Fries and more, classic or loaded",
-      "imageAlt": "Fries",
-      "title": "SIDES"
+      "description": "Πατάτες και άλλα, κλασικά ή φορτωμένα",
+      "imageAlt": "Πατάτες τηγανητές",
+      "title": "ΣΥΝΟΔΕΥΤΙΚΑ"
     }
   },
   "home": {
     "appQr": {
-      "ariaLabel": "Open The Greeks",
-      "badge": "Right on your phone",
-      "description": "Open your smartphone camera and point it at the QR code. You'll be taken directly to The Greeks.",
-      "openButton": "Open app",
-      "qrTitle": "QR code for The Greeks",
-      "title": "Scan and order."
+      "ariaLabel": "Άνοιγμα The Greeks",
+      "badge": "Στο κινητό σου",
+      "description": "Άνοιξε την κάμερα του smartphone σου και στρέψ' την προς τον κωδικό QR. Θα μεταφερθείς απευθείας στο The Greeks.",
+      "openButton": "Άνοιγμα εφαρμογής",
+      "qrTitle": "Κωδικός QR για το The Greeks",
+      "title": "Σκάναρε και παράγγειλε."
     },
     "footer": {
-      "title": "Check our menu."
+      "title": "Δείτε το μενού μας."
     },
     "header": {
-      "title": "Choose your favorite"
+      "title": "Επίλεξε το αγαπημένο σου"
     },
     "hero": {
-      "discount": "10% off every order over €20",
-      "eyebrow": "GYROS · GRILL · SOUVLAKI",
-      "orderButton": "Order online",
-      "tagline": "The taste of Thessaloniki's street food, made fresh every day.",
+      "discount": "10% έκπτωση σε κάθε παραγγελία άνω των 20€",
+      "eyebrow": "ΓΥΡΟΣ · ΣΧΑΡΑ · ΣΟΥΒΛΑΚΙ",
+      "orderButton": "Παράγγειλε online",
+      "tagline": "Η γεύση του street food της Θεσσαλονίκης, φρέσκια κάθε μέρα.",
       "title": "THE GREEKS"
     },
     "hours": {
-      "addressTitle": "Address",
-      "closed": "Closed",
-      "contactTitle": "More information",
+      "addressTitle": "Διεύθυνση",
+      "closed": "Κλειστά",
+      "contactTitle": "Περισσότερες πληροφορίες",
       "days": {
-        "friday": "Friday",
-        "monday": "Monday",
-        "saturday": "Saturday",
-        "sunday": "Sunday",
-        "thursday": "Thursday",
-        "tuesday": "Tuesday",
-        "wednesday": "Wednesday"
+        "friday": "Παρασκευή",
+        "monday": "Δευτέρα",
+        "saturday": "Σάββατο",
+        "sunday": "Κυριακή",
+        "thursday": "Πέμπτη",
+        "tuesday": "Τρίτη",
+        "wednesday": "Τετάρτη"
       },
-      "deliveryTitle": "Delivery times"
+      "deliveryTitle": "Ώρες διανομής"
     },
     "navbar": {
       "Logo": "Saloniki Grill"
     }
   },
   "menu": {
-    "addButton": "Add",
+    "addButton": "Προσθήκη",
     "customize": {
-      "add": "Add to cart",
-      "close": "Close customization",
-      "eyebrow": "Make it yours",
-      "hint": "Tap an ingredient to remove or add it back.",
-      "included": "Included ingredients",
-      "noOptions": "This item has no removable ingredients listed.",
-      "open": "Customize"
+      "add": "Προσθήκη στο καλάθι",
+      "close": "Κλείσιμο προσαρμογής",
+      "eyebrow": "Φτιάξ' το όπως θέλεις",
+      "hint": "Πάτησε πάνω σε ένα υλικό για να το αφαιρέσεις ή να το επαναφέρεις.",
+      "included": "Περιλαμβανόμενα υλικά",
+      "noOptions": "Αυτό το προϊόν δεν έχει καταχωρημένα υλικά που μπορούν να αφαιρεθούν.",
+      "open": "Προσαρμογή"
     },
     "drinksAlcoholic": {
       "items": {
         "koelsch": {
-          "description": "Light, crisp German lager style.",
-          "name": "Kölsch Beer, 0.33L"
+          "description": "Ελαφριά και δροσιστική μπύρα γερμανικού τύπου lager.",
+          "name": "Μπύρα Kölsch, 0,33L"
         },
         "mythos": {
-          "description": "Greek lager beer.",
-          "name": "Mythos Beer, 0.33L"
+          "description": "Ελληνική μπύρα lager.",
+          "name": "Μπύρα Mythos, 0,33L"
         },
         "ouzo": {
-          "description": "Traditional Greek anise spirit.",
-          "name": "Ouzo, 0.05L"
+          "description": "Παραδοσιακό ελληνικό απόσταγμα με γεύση γλυκάνισου.",
+          "name": "Ούζο, 0,05L"
         },
         "retsina": {
-          "description": "Traditional Greek white wine with a pine resin note.",
-          "name": "Retsina, 0.5L"
+          "description": "Παραδοσιακό ελληνικό λευκό κρασί με χαρακτηριστικό άρωμα ρετσινιού.",
+          "name": "Ρετσίνα, 0,5L"
         }
       },
-      "label": "BEER & WINE (18+)"
+      "label": "ΜΠΥΡΑ & ΚΡΑΣΙ (18+)"
     },
     "drinksNonAlcoholic": {
       "items": {
         "cola033": {
-          "description": "Contains caffeine.",
-          "name": "Coca-Cola, 0.33L"
+          "description": "Περιέχει καφεΐνη.",
+          "name": "Coca-Cola, 0,33L"
         },
         "cola1l": {
-          "description": "Contains caffeine.",
+          "description": "Περιέχει καφεΐνη.",
           "name": "Coca-Cola, 1L"
         },
         "fanta1l": {
-          "description": "Orange-flavored soft drink.",
+          "description": "Αναψυκτικό με γεύση πορτοκάλι.",
           "name": "Fanta, 1L"
         },
         "sprite033": {
-          "description": "Lemon-lime soft drink.",
-          "name": "Sprite, 0.33L"
+          "description": "Αναψυκτικό με γεύση λεμόνι και λάιμ.",
+          "name": "Sprite, 0,33L"
         },
         "stillWater": {
-          "description": "Natural still mineral water.",
-          "name": "Still Water, 0.5L"
+          "description": "Φυσικό μεταλλικό νερό χωρίς ανθρακικό.",
+          "name": "Νερό χωρίς ανθρακικό, 0,5L"
         }
       },
-      "label": "SOFT DRINKS"
+      "label": "ΑΝΑΨΥΚΤΙΚΑ"
     },
     "grill": {
       "items": {
         "bifteki": {
-          "description": "Grilled beef patty filled with cheese.",
-          "name": "Bifteki"
+          "description": "Μπιφτέκι μοσχαρίσιο στη σχάρα, γεμιστό με τυρί.",
+          "name": "Μπιφτέκι"
         },
         "grillPlatter": {
-          "description": "Gyros, souvlaki skewer, soutzoukaki, onions, and oregano.",
-          "name": "Grill Platter"
+          "description": "Γύρος, σουβλάκι, σουτζουκάκι, κρεμμύδι και ρίγανη.",
+          "name": "Ποικιλία Σχάρας"
         },
         "porkSouvlaki": {
-          "description": "Two charcoal-grilled skewers.",
-          "name": "Pork Souvlaki"
+          "description": "Δύο σουβλάκια ψημένα στα κάρβουνα.",
+          "name": "Χοιρινό Σουβλάκι"
         },
         "soutzoukakia": {
-          "description": "Two spiced, oblong meatballs.",
-          "name": "Soutzoukakia"
+          "description": "Δύο πικάντικα, μακρόστενα κεφτεδάκια.",
+          "name": "Σουτζουκάκια"
         }
       },
-      "label": "FROM THE GRILL"
+      "label": "ΑΠΟ ΤΗ ΣΧΑΡΑ"
     },
     "gyrosPita": {
       "items": {
         "gyrosBox": {
-          "description": "Gyros, fries, onions, oregano, ketchup, mayonnaise, and mustard.",
+          "description": "Γύρος, πατάτες, κρεμμύδι, ρίγανη, κέτσαπ, μαγιονέζα και μουστάρδα.",
           "name": "Gyros Box"
         },
         "gyrosMetaxa": {
-          "description": "Gyros, feta, onions, oregano, salad, fries, ketchup, mayonnaise, and mustard.",
-          "name": "Gyros Metaxa"
+          "description": "Γύρος, φέτα, κρεμμύδι, ρίγανη, σαλάτα, πατάτες, κέτσαπ, μαγιονέζα και μουστάρδα.",
+          "name": "Γύρος Μεταξά"
         },
         "gyrosMetaxaRiceNoodles": {
-          "description": "Gyros, rice noodles, feta, onions, and oregano.",
-          "name": "Gyros Metaxa with Rice Noodles"
+          "description": "Γύρος, ρυζομακάρονα, φέτα, κρεμμύδι και ρίγανη.",
+          "name": "Γύρος Μεταξά με Ρυζομακάρονα"
         },
         "gyrosPitaSaloniki": {
-          "description": "Cabbage slaw, tzatziki, and onions.",
-          "name": "Gyros Pita Saloniki"
+          "description": "Λάχανο, τζατζίκι και κρεμμύδι.",
+          "name": "Πίτα Γύρος Saloniki"
         },
         "gyrosPitaSpecial": {
-          "description": "Our house special preparation.",
-          "name": "Gyros Pita Special, Greek Style"
+          "description": "Η ιδιαίτερη σπεσιαλιτέ του καταστήματός μας.",
+          "name": "Πίτα Γύρος Special, Ελληνικού Τύπου"
         },
         "gyrosPitaWithSalad": {
-          "description": "Classic gyros pita, topped with fresh salad.",
-          "name": "Gyros Pita with Salad"
+          "description": "Κλασική πίτα με γύρο, με φρέσκια σαλάτα από πάνω.",
+          "name": "Πίτα Γύρος με Σαλάτα"
         },
         "gyrosPlain": {
-          "description": "Gyros, onions, and oregano.",
-          "name": "Gyros, Plain"
+          "description": "Γύρος, κρεμμύδι και ρίγανη.",
+          "name": "Γύρος Σκέτος"
         },
         "gyrosPlate": {
-          "description": "Gyros, tzatziki, fries, onions, oregano, ketchup, mayonnaise, and mustard.",
-          "name": "Gyros Plate"
+          "description": "Γύρος, τζατζίκι, πατάτες, κρεμμύδι, ρίγανη, κέτσαπ, μαγιονέζα και μουστάρδα.",
+          "name": "Μερίδα Γύρος"
         },
         "pitaNoGyros": {
-          "description": "Pita bread, fries, tzatziki, ketchup, mayonnaise, and mustard.",
-          "name": "Pita with Fries & Tzatziki"
+          "description": "Πίτα, πατάτες, τζατζίκι, κέτσαπ, μαγιονέζα και μουστάρδα.",
+          "name": "Πίτα με Πατάτες & Τζατζίκι"
         },
         "vegetarianPita": {
-          "description": "Warm pita filled with fresh salad.",
-          "name": "Vegetarian Pita"
+          "description": "Ζεστή πίτα γεμιστή με φρέσκια σαλάτα.",
+          "name": "Χορτοφαγική Πίτα"
         }
       },
-      "label": "GYROS & PITA"
+      "label": "ΓΥΡΟΣ & ΠΙΤΑ"
     },
-    "pageTitle": "Our Menu",
+    "pageTitle": "Το Μενού μας",
     "popular": {
-      "label": "MOST POPULAR"
+      "label": "ΔΗΜΟΦΙΛΕΙΣ ΕΠΙΛΟΓΕΣ"
     },
     "salads": {
       "items": {
         "farmersSalad": {
-          "description": "Tomato, cucumber, onion, feta, and olives.",
-          "name": "Farmer's Salad"
+          "description": "Ντομάτα, αγγούρι, κρεμμύδι, φέτα και ελιές.",
+          "name": "Χωριάτικη Σαλάτα"
         },
         "fetaSalad": {
-          "description": "Feta, olive oil, and oregano.",
-          "name": "Feta Salad"
+          "description": "Φέτα, ελαιόλαδο και ρίγανη.",
+          "name": "Σαλάτα Φέτα"
         },
         "mixedSalad": {
-          "description": "Lettuce, tomatoes, cucumber, onions, and corn.",
-          "name": "Mixed Salad"
+          "description": "Μαρούλι, ντομάτα, αγγούρι, κρεμμύδι και καλαμπόκι.",
+          "name": "Ανάμεικτη Σαλάτα"
         },
         "olives": {
-          "description": "Olives, olive oil, and herbs.",
-          "name": "Olives"
+          "description": "Ελιές, ελαιόλαδο και μυρωδικά.",
+          "name": "Ελιές"
         },
         "peperoni": {
-          "description": "Pepperoncini, olive oil, and garlic.",
-          "name": "Pepperoncini"
+          "description": "Πιπεράκια, ελαιόλαδο και σκόρδο.",
+          "name": "Πιπεράκια"
         },
         "tzatzikiPortion": {
-          "description": "Yogurt, cucumber, and garlic.",
-          "name": "Tzatziki Portion"
+          "description": "Γιαούρτι, αγγούρι και σκόρδο.",
+          "name": "Μερίδα Τζατζίκι"
         },
         "whiteCabbageSalad": {
-          "description": "White cabbage, vinegar, oil, and seasoning.",
-          "name": "White Cabbage Salad"
+          "description": "Λευκό λάχανο, ξύδι, λάδι και καρυκεύματα.",
+          "name": "Λάχανο Σαλάτα"
         }
       },
-      "label": "SALADS"
+      "label": "ΣΑΛΑΤΕΣ"
     },
     "sauces": {
       "items": {
         "curryKetchup": {
-          "description": "Ketchup with a curry spice blend.",
-          "name": "Curry Ketchup"
+          "description": "Κέτσαπ με μείγμα μπαχαρικών κάρυ.",
+          "name": "Κέτσαπ Κάρυ"
         },
         "ketchup": {
-          "description": "Classic tomato ketchup.",
-          "name": "Ketchup"
+          "description": "Κλασικό κέτσαπ ντομάτας.",
+          "name": "Κέτσαπ"
         },
         "mayonnaise": {
-          "description": "Mild and creamy.",
-          "name": "Mayonnaise"
+          "description": "Απαλή και κρεμώδης.",
+          "name": "Μαγιονέζα"
         },
         "mustard": {
-          "description": "Classic yellow mustard.",
-          "name": "Mustard"
+          "description": "Κλασική κίτρινη μουστάρδα.",
+          "name": "Μουστάρδα"
         },
         "saladMayo": {
-          "description": "A lighter, tangy mayonnaise.",
-          "name": "Salad Mayo"
+          "description": "Πιο ελαφριά, με ελαφρώς όξινη γεύση.",
+          "name": "Μαγιονέζα Σαλάτας"
         },
         "tzatzikiSauce": {
-          "description": "Yogurt, cucumber, and garlic.",
-          "name": "Tzatziki Sauce"
+          "description": "Γιαούρτι, αγγούρι και σκόρδο.",
+          "name": "Σάλτσα Τζατζίκι"
         }
       },
-      "label": "SAUCES"
+      "label": "ΣΑΛΤΣΕΣ"
     },
     "sides": {
       "items": {
         "bratwurst": {
-          "description": "Grilled German sausage.",
+          "description": "Γερμανικό λουκάνικο στη σχάρα.",
           "name": "Bratwurst"
         },
         "currywurst": {
-          "description": "Sliced sausage in curry-spiced ketchup.",
+          "description": "Κομμένο λουκάνικο σε κέτσαπ με κάρυ.",
           "name": "Currywurst"
         },
         "currywurstFries": {
-          "description": "Currywurst, fries, ketchup, mayonnaise, and mustard.",
-          "name": "Currywurst with Fries"
+          "description": "Currywurst, πατάτες, κέτσαπ, μαγιονέζα και μουστάρδα.",
+          "name": "Currywurst με Πατάτες"
         },
         "fries": {
-          "description": "Fries, ketchup, mayonnaise, and mustard.",
-          "name": "Fries"
+          "description": "Πατάτες, κέτσαπ, μαγιονέζα και μουστάρδα.",
+          "name": "Πατάτες Τηγανητές"
         },
         "plainPitaBread": {
-          "description": "With olive oil and oregano.",
-          "name": "Plain Pita Bread"
+          "description": "Με ελαιόλαδο και ρίγανη.",
+          "name": "Σκέτη Πίτα"
         },
         "riceNoodles": {
-          "description": "A simple side of rice noodles.",
-          "name": "Rice Noodles"
+          "description": "Μια απλή μερίδα ρυζομακάρονων.",
+          "name": "Ρυζομακάρονα"
         }
       },
-      "label": "SIDES"
+      "label": "ΣΥΝΟΔΕΥΤΙΚΑ"
     }
   }
 }
