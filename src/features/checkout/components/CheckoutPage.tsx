@@ -71,11 +71,12 @@ export function CheckoutPage({
         const nextAvailability = body.availability;
         setAvailability(nextAvailability);
         setOrderType((current) => {
-          if (current === "takeaway" && nextAvailability.acceptsTakeaway) return current;
-          if (current === "table" && nextAvailability.acceptsTable) return current;
-          if (current === "delivery" && nextAvailability.acceptsDelivery) return current;
-          if (nextAvailability.acceptsTakeaway) return "takeaway";
-          if (nextAvailability.acceptsTable) return "table";
+          if (current === "delivery" && nextAvailability.acceptsDelivery !== false) return current;
+          if (current === "takeaway" && nextAvailability.acceptsTakeaway !== false) return current;
+          if (current === "table" && nextAvailability.acceptsTable !== false) return current;
+          if (nextAvailability.acceptsDelivery !== false) return "delivery";
+          if (nextAvailability.acceptsTakeaway !== false) return "takeaway";
+          if (nextAvailability.acceptsTable !== false) return "table";
           return "delivery";
         });
         if (!nextAvailability.cashOnDeliveryEnabled) {
@@ -252,33 +253,21 @@ export function CheckoutPage({
     <>
       <form
         onSubmit={submit}
-        className="mx-auto grid max-w-5xl gap-8 px-4 py-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:py-14"
+        className="mx-auto grid max-w-5xl gap-5 px-3 py-6 sm:gap-8 sm:px-4 sm:py-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:py-14"
       >
         <header className="lg:col-span-2">
-          <Link href="/cart" className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline">
+          <Link href="/cart" className="mb-4 inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline sm:mb-6">
             <ArrowLeft className="size-4" aria-hidden="true" />
             {t("editCart")}
           </Link>
           <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary/70">
             {t("eyebrow")}
           </p>
-          <h1 className="mt-2 text-4xl font-black text-char">{t("title")}</h1>
+          <h1 className="mt-2 text-3xl font-black text-char sm:text-4xl">{t("title")}</h1>
         </header>
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <CheckoutSection title={t("orderType.title")}>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {availability?.acceptsTakeaway !== false && (
-                <ChoiceButton
-                  active={orderType === "takeaway"}
-                  label={t("orderType.takeaway.label")}
-                  description={t("orderType.takeaway.description")}
-                  icon={ShoppingBag}
-                  onClick={() => {
-                    setOrderType("takeaway");
-                    if (paymentMethod === "cash_on_delivery") setPaymentMethod("online");
-                  }}
-                />
-              )}
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {availability?.acceptsDelivery !== false && (
                 <ChoiceButton
                   active={orderType === "delivery"}
@@ -288,6 +277,18 @@ export function CheckoutPage({
                   onClick={() => {
                     setOrderType("delivery");
                     if (paymentMethod === "cash_on_site") setPaymentMethod("online");
+                  }}
+                />
+              )}
+              {availability?.acceptsTakeaway !== false && (
+                <ChoiceButton
+                  active={orderType === "takeaway"}
+                  label={t("orderType.takeaway.label")}
+                  description={t("orderType.takeaway.description")}
+                  icon={ShoppingBag}
+                  onClick={() => {
+                    setOrderType("takeaway");
+                    if (paymentMethod === "cash_on_delivery") setPaymentMethod("online");
                   }}
                 />
               )}
@@ -317,13 +318,14 @@ export function CheckoutPage({
               </label>
             )}
             {orderType === "delivery" && (
-              <div className="mt-5 border-t border-border pt-5">
+              <div className="mt-4 border-t border-border pt-4 sm:mt-5 sm:pt-5">
                 <div className="flex items-center gap-2 text-sm font-black text-char">
                   <MapPin className="size-4 text-primary" aria-hidden="true" />
                   {t("delivery.title")}
                 </div>
-                <div className="mt-3 grid gap-4 sm:grid-cols-2">
-                  <Field label={t("delivery.street") }>
+                <div className="mt-3 grid grid-cols-2 gap-3 sm:gap-4">
+                  <div className="col-span-2">
+                  <Field label={t("delivery.street")}>
                     <input
                       required
                       value={deliveryStreet}
@@ -332,7 +334,8 @@ export function CheckoutPage({
                       className={inputClass}
                     />
                   </Field>
-                  <Field label={t("delivery.postalCode") }>
+                  </div>
+                  <Field label={t("delivery.postalCode")}>
                     <input
                       required
                       value={deliveryPostalCode}
@@ -343,7 +346,7 @@ export function CheckoutPage({
                       className={inputClass}
                     />
                   </Field>
-                  <Field label={t("delivery.city") }>
+                  <Field label={t("delivery.city")}>
                     <input
                       required
                       value={deliveryCity}
@@ -362,7 +365,7 @@ export function CheckoutPage({
                     deliveryCity.trim().length < 2
                   }
                   onClick={() => void requestDeliveryQuote()}
-                  className="mt-4 h-11 rounded-xl border border-primary/25 bg-secondary px-4 text-sm font-bold text-primary transition hover:bg-secondary/70 disabled:cursor-not-allowed disabled:opacity-45"
+                  className="mt-3 h-10 rounded-xl border border-primary/25 bg-secondary px-4 text-sm font-bold text-primary transition hover:bg-secondary/70 disabled:cursor-not-allowed disabled:opacity-45 sm:mt-4 sm:h-11"
                 >
                   {quoteBusy ? t("delivery.checking") : t("delivery.check")}
                 </button>
@@ -444,7 +447,7 @@ export function CheckoutPage({
           </CheckoutSection>
 
           <CheckoutSection title={t("payment.title")}>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               <ChoiceButton
                 active={paymentMethod === "online"}
                 label={t("payment.card.label")}
@@ -487,7 +490,7 @@ export function CheckoutPage({
           )}
         </div>
 
-        <aside className="h-fit rounded-3xl border border-border bg-[#f8fbfd] p-6 shadow-[0_12px_35px_rgba(15,23,42,0.05)] lg:sticky lg:top-24">
+        <aside className="h-fit rounded-2xl border border-border bg-[#f8fbfd] p-5 shadow-[0_12px_35px_rgba(15,23,42,0.05)] sm:rounded-3xl sm:p-6 lg:sticky lg:top-24">
           <h2 className="text-xl font-black text-char">{t("summary.title")}</h2>
           <div className="mt-5 space-y-3">
             {items.map((item) => (
@@ -581,8 +584,8 @@ function CheckoutSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-3xl border border-border bg-white p-5 shadow-[0_8px_28px_rgba(15,23,42,0.04)] sm:p-6">
-      <h2 className="mb-4 text-xl font-black text-char">{title}</h2>
+    <section className="rounded-2xl border border-border bg-white p-4 shadow-[0_8px_28px_rgba(15,23,42,0.04)] sm:rounded-3xl sm:p-6">
+      <h2 className="mb-3 text-lg font-black text-char sm:mb-4 sm:text-xl">{title}</h2>
       {children}
     </section>
   );
@@ -620,20 +623,21 @@ function ChoiceButton({
     <button
       type="button"
       onClick={onClick}
-      className={`flex min-h-24 items-center gap-4 rounded-2xl border p-4 text-left transition ${
+      aria-pressed={active}
+      className={`flex min-h-20 flex-col items-center justify-center gap-2 rounded-xl border p-2 text-center transition sm:min-h-24 sm:flex-row sm:justify-start sm:gap-4 sm:rounded-2xl sm:p-4 sm:text-left ${
         active
           ? "border-primary bg-secondary text-char ring-2 ring-primary/10"
           : "border-border bg-white text-char/70 hover:border-primary/40 hover:bg-secondary/40"
       }`}
     >
-      <Icon className="size-6 shrink-0" />
+      <Icon className="size-5 shrink-0 sm:size-6" />
       <span>
-        <span className="block font-black">{label}</span>
-        <span className="mt-1 block text-xs opacity-70">{description}</span>
+        <span className="block text-sm font-black sm:text-base">{label}</span>
+        <span className="mt-1 hidden text-xs opacity-70 sm:block">{description}</span>
       </span>
     </button>
   );
 }
 
 const inputClass =
-  "mt-2 h-12 w-full rounded-xl border border-border bg-white px-4 text-char outline-none focus:border-primary focus:ring-4 focus:ring-primary/10";
+  "mt-1.5 h-11 w-full rounded-xl border border-border bg-white px-3 text-char outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 sm:mt-2 sm:h-12 sm:px-4";

@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+test.use({ viewport: { width: 390, height: 844 } });
+
 test("checkout offers pickup, delivery, and eat-in with a delivery quote", async ({
   page,
 }) => {
@@ -54,10 +56,9 @@ test("checkout offers pickup, delivery, and eat-in with a delivery quote", async
   await page.goto("/checkout");
 
   await expect(page.getByRole("button", { name: /Abholung|Pickup/i }).first()).toBeVisible();
-  await expect(page.getByRole("button", { name: /Lieferung|Delivery/i }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: /Lieferung|Delivery/i }).first()).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: /Vor Ort essen|Eat in/i })).toBeVisible();
 
-  await page.getByRole("button", { name: /Lieferung|Delivery/i }).first().click();
   await page.getByLabel(/Straße und Hausnummer|Street and house number/i).fill("Torstraße 10");
   await page.getByLabel(/Postleitzahl|Postal code/i).fill("10119");
   await page.getByLabel(/Stadt|City/i).fill("Berlin");
