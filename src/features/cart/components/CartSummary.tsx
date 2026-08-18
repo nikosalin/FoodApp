@@ -5,9 +5,9 @@ export function CartSummary({ items }: CartSummaryProps) {
   const total = getCartTotal(items);
 
   return (
-    <div className="flex items-center justify-between border-t border-olive/30 pt-4 text-lg">
-      <span className="font-bold text-pita">Total</span>
-      <span className="font-black text-lemon">€ {total.toFixed(2)}</span>
+    <div className="flex items-center justify-between border-t border-border pt-4 text-lg">
+      <span className="font-bold text-char">Total</span>
+      <span className="font-black text-primary">€ {total.toFixed(2)}</span>
     </div>
   );
 }

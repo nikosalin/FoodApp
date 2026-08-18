@@ -14,6 +14,7 @@ export default interface Resources {
       "phone": "Τηλέφωνο (προαιρετικό)",
       "title": "Στοιχεία επικοινωνίας"
     },
+    "editCart": "Επεξεργασία καλαθιού",
     "emptyCart": {
       "browseMenu": "Περιηγηθείτε στο μενού",
       "description": "Προσθέστε κάτι από το μενού πριν ολοκληρώσετε την παραγγελία.",
@@ -57,10 +58,13 @@ export default interface Resources {
       "continuePayment": "Συνέχεια στην πληρωμή",
       "continueToPayment": "Συνέχεια στην ασφαλή πληρωμή",
       "creatingOrder": "Δημιουργία παραγγελίας…",
+      "extra": "Έξτρα",
       "placeOrder": "Υποβολή παραγγελίας",
       "priceDisclaimer": "Οι τιμές του μενού επαληθεύονται ξανά από τον διακομιστή.",
+      "securePayment": "Ασφαλής ολοκλήρωση παραγγελίας",
       "title": "Σύνοψη παραγγελίας",
-      "total": "Σύνολο"
+      "total": "Σύνολο",
+      "without": "Χωρίς"
     },
     "title": "Ολοκληρώστε την παραγγελία σας"
   },

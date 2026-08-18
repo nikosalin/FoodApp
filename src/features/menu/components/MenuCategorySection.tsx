@@ -30,7 +30,7 @@ export function MenuCategorySection({ id, label, items }: MenuCategoryView) {
         className={
           isPopular
             ? "flex touch-pan-x snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:grid md:grid-cols-2 md:gap-5 md:overflow-visible xl:grid-cols-3"
-            : "overflow-hidden border-y border-char/10 md:grid md:grid-cols-2 md:gap-5 md:overflow-visible md:border-0 xl:grid-cols-3"
+            : "overflow-hidden border-y border-[#dceaf2] bg-white md:grid md:grid-cols-2 md:gap-5 md:overflow-visible md:border-0 md:bg-transparent xl:grid-cols-3"
         }
       >
         {items.map((item) => (

@@ -107,14 +107,15 @@ export function MenuPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f1e8] pb-28 md:pb-20">
-      <div className="relative overflow-hidden bg-tomato px-4 py-20 text-center text-white">
-        <div className="absolute inset-0 opacity-10 [background-image:radial-gradient(circle_at_center,white_1px,transparent_1px)] [background-size:18px_18px]" />
-        <p className="relative text-xs font-black uppercase tracking-[0.35em] text-white/75">Fresh from the grill</p>
+    <div className="min-h-screen bg-[#f5f9fc] pb-28 md:pb-20">
+      <div className="relative overflow-hidden bg-[#e9f6fc] px-4 py-16 text-center text-char md:py-20">
+        <div className="absolute inset-0 opacity-50 [background-image:radial-gradient(circle_at_center,#9edcf3_1px,transparent_1px)] [background-size:18px_18px]" />
+        <div className="absolute -top-28 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-white/70 blur-3xl" />
+        <p className="relative text-xs font-black uppercase tracking-[0.35em] text-primary/70">Fresh from the grill</p>
         <h1 className="relative mt-3 text-5xl font-black uppercase tracking-tight md:text-7xl">
           {t("pageTitle")}
         </h1>
-        <span className="relative mx-auto mt-5 block h-1 w-20 rounded-full bg-lemon" />
+        <span className="relative mx-auto mt-5 block h-1 w-20 rounded-full bg-primary" />
       </div>
 
       <MenuCategoryNav

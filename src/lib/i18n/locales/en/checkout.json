@@ -1,6 +1,7 @@
 {
   "eyebrow": "Checkout",
   "title": "Complete your order",
+  "editCart": "Edit cart",
   "orderType": {
     "title": "Order type",
     "takeaway": {
@@ -43,7 +44,10 @@
     "continuePayment": "Continue payment",
     "continueToPayment": "Continue to secure payment",
     "placeOrder": "Place order",
-    "priceDisclaimer": "Menu prices are verified again by the server."
+    "priceDisclaimer": "Menu prices are verified again by the server.",
+    "securePayment": "Secure checkout",
+    "without": "Without",
+    "extra": "Extra"
   },
   "emptyCart": {
     "title": "Your cart is empty",

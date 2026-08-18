@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { CreditCard, ShoppingBag, Utensils } from "lucide-react";
+import { ArrowLeft, CreditCard, LockKeyhole, ShoppingBag, Utensils } from "lucide-react";
 import { useCartStore } from "@/features/cart/store/useCartStore";
 import { getCartTotal } from "@/features/cart/lib/selectors";
 import { StripePaymentStep } from "@/features/payments/components/StripePaymentStep";
@@ -124,11 +124,14 @@ export function CheckoutPage({
   if (items.length === 0) {
     return (
       <section className="mx-auto max-w-2xl px-4 py-24 text-center">
-        <h1 className="text-3xl font-black text-pita">Your cart is empty</h1>
-        <p className="mt-3 text-pita/70">{t("emptyCart.title")}</p>
+        <div className="mx-auto grid size-16 place-items-center rounded-full bg-secondary text-primary">
+          <ShoppingBag className="size-7" aria-hidden="true" />
+        </div>
+        <h1 className="mt-6 text-3xl font-black text-char">{t("emptyCart.title")}</h1>
+        <p className="mt-3 text-muted-foreground">{t("emptyCart.description")}</p>
         <Link
           href="/menu"
-          className="mt-6 inline-flex rounded-full bg-lemon px-6 py-3 font-bold text-char"
+          className="mt-6 inline-flex rounded-full bg-primary px-6 py-3 font-bold text-white transition hover:bg-primary/90"
         >
           {t("emptyCart.browseMenu")}
         </Link>
@@ -140,17 +143,21 @@ export function CheckoutPage({
     <>
       <form
         onSubmit={submit}
-        className="mx-auto grid max-w-5xl gap-8 px-4 py-12 lg:grid-cols-[1fr_22rem]"
+        className="mx-auto grid max-w-5xl gap-8 px-4 py-10 lg:grid-cols-[1fr_22rem] lg:py-14"
       >
         <div className="space-y-6">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-lemon">
+            <Link href="/cart" className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline">
+              <ArrowLeft className="size-4" aria-hidden="true" />
+              {t("editCart")}
+            </Link>
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary/70">
               {t("eyebrow")}
             </p>
-            <h1 className="mt-2 text-4xl font-black text-pita">{t("title")}</h1>
+            <h1 className="mt-2 text-4xl font-black text-char">{t("title")}</h1>
           </div>
 
-          <CheckoutSection title="Order type">
+          <CheckoutSection title={t("orderType.title")}>
             <div className="grid gap-3 sm:grid-cols-2">
               <ChoiceButton
                 active={orderType === "takeaway"}
@@ -168,14 +175,14 @@ export function CheckoutPage({
               />
             </div>
             {orderType === "table" && (
-              <label className="mt-4 block text-sm font-semibold text-pita">
+              <label className="mt-4 block text-sm font-semibold text-char">
                 {t("orderType.tableNumberLabel")}
                 <input
                   required
                   value={tableNumber}
                   onChange={(event) => setTableNumber(event.target.value)}
                   maxLength={12}
-                  className="mt-2 h-12 w-full rounded-xl border border-pita/20 bg-char px-4 text-pita outline-none focus:border-lemon"
+                  className={inputClass}
                 />
               </label>
             )}
@@ -217,7 +224,7 @@ export function CheckoutPage({
           </CheckoutSection>
 
           <CheckoutSection title={t("notes.title")}>
-            <label className="block text-sm font-semibold text-pita">
+            <label className="block text-sm font-semibold text-char">
               {t("notes.label")}
               <textarea
                 value={customerNotes}
@@ -225,9 +232,9 @@ export function CheckoutPage({
                 maxLength={500}
                 rows={4}
                 placeholder={t("notes.placeholder")}
-                className="mt-2 w-full resize-y rounded-xl border border-pita/20 bg-char px-4 py-3 text-pita outline-none placeholder:text-pita/35 focus:border-lemon"
+                className="mt-2 w-full resize-y rounded-xl border border-border bg-white px-4 py-3 text-char outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-4 focus:ring-primary/10"
               />
-              <span className="mt-1 block text-right text-xs text-pita/45">
+              <span className="mt-1 block text-right text-xs text-muted-foreground">
                 {customerNotes.length}/500
               </span>
             </label>
@@ -259,46 +266,46 @@ export function CheckoutPage({
           {error && (
             <p
               role="alert"
-              className="rounded-2xl border border-tomato/30 bg-tomato/10 p-4 text-sm text-pita"
+              className="rounded-2xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive"
             >
               {error}
             </p>
           )}
         </div>
 
-        <aside className="h-fit rounded-3xl border border-pita/10 bg-pita/5 p-6 lg:sticky lg:top-24">
-          <h2 className="text-xl font-black text-pita">{t("summary.title")}</h2>
+        <aside className="h-fit rounded-3xl border border-border bg-[#f8fbfd] p-6 shadow-[0_12px_35px_rgba(15,23,42,0.05)] lg:sticky lg:top-24">
+          <h2 className="text-xl font-black text-char">{t("summary.title")}</h2>
           <div className="mt-5 space-y-3">
             {items.map((item) => (
               <div
                 key={item.id}
-                className="flex justify-between gap-4 text-sm text-pita/80"
+                className="flex justify-between gap-4 border-b border-border pb-3 text-sm text-char/80 last:border-0 last:pb-0"
               >
                 <span>
                   {item.quantity} × {item.name}
                   {item.excludedIngredients.length > 0 && (
-                    <small className="mt-1 block text-xs text-tomato">
-                      Without {item.excludedIngredients.join(", ")}
+                    <small className="mt-1 block text-xs text-muted-foreground">
+                      {t("summary.without")} {item.excludedIngredients.join(", ")}
                     </small>
                   )}
                   {(item.selectedExtras?.length ?? 0) > 0 && (
-                    <small className="mt-1 block text-xs text-olive">
-                      Extra: {item.selectedExtras?.map((extra) => extra.name).join(", ")}
+                    <small className="mt-1 block text-xs text-primary">
+                      {t("summary.extra")}: {item.selectedExtras?.map((extra) => extra.name).join(", ")}
                     </small>
                   )}
                 </span>
-                <span>€ {(item.price * item.quantity).toFixed(2)}</span>
+                <span className="shrink-0 font-semibold">€ {((item.price + (item.selectedExtras ?? []).reduce((sum, extra) => sum + extra.price, 0)) * item.quantity).toFixed(2)}</span>
               </div>
             ))}
           </div>
-          <div className="mt-5 flex justify-between border-t border-pita/20 pt-5 text-lg font-black text-pita">
+          <div className="mt-5 flex justify-between border-t border-border pt-5 text-lg font-black text-char">
             <span>{t("summary.total")}</span>
-            <span className="text-lemon">€ {total.toFixed(2)}</span>
+            <span className="text-primary">€ {total.toFixed(2)}</span>
           </div>
           <button
             type="submit"
             disabled={busy}
-            className="mt-6 h-12 w-full rounded-full bg-chili font-black text-pita transition hover:bg-chili/90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-6 h-12 w-full rounded-full bg-primary font-black text-white shadow-[0_10px_24px_rgba(11,116,209,0.22)] transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {busy
               ? t("summary.creatingOrder")
@@ -308,7 +315,11 @@ export function CheckoutPage({
                   ? t("summary.continueToPayment")
                   : t("summary.placeOrder")}
           </button>
-          <p className="mt-3 text-center text-xs text-pita/60">
+          <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
+            <LockKeyhole className="size-3.5" aria-hidden="true" />
+            {t("summary.securePayment")}
+          </p>
+          <p className="mt-2 text-center text-xs text-muted-foreground">
             {t("summary.priceDisclaimer")}
           </p>
         </aside>
@@ -341,8 +352,8 @@ function CheckoutSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-3xl border border-pita/10 bg-pita/5 p-6">
-      <h2 className="mb-4 text-xl font-black text-pita">{title}</h2>
+    <section className="rounded-3xl border border-border bg-white p-5 shadow-[0_8px_28px_rgba(15,23,42,0.04)] sm:p-6">
+      <h2 className="mb-4 text-xl font-black text-char">{title}</h2>
       {children}
     </section>
   );
@@ -356,7 +367,7 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <label className="text-sm font-semibold text-pita">
+    <label className="text-sm font-semibold text-char">
       {label}
       {children}
     </label>
@@ -382,8 +393,8 @@ function ChoiceButton({
       onClick={onClick}
       className={`flex min-h-24 items-center gap-4 rounded-2xl border p-4 text-left transition ${
         active
-          ? "border-lemon bg-lemon/10 text-pita"
-          : "border-pita/15 text-pita/70 hover:border-pita/30"
+          ? "border-primary bg-secondary text-char ring-2 ring-primary/10"
+          : "border-border bg-white text-char/70 hover:border-primary/40 hover:bg-secondary/40"
       }`}
     >
       <Icon className="size-6 shrink-0" />
@@ -396,4 +407,4 @@ function ChoiceButton({
 }
 
 const inputClass =
-  "mt-2 h-12 w-full rounded-xl border border-pita/20 bg-char px-4 text-pita outline-none focus:border-lemon";
+  "mt-2 h-12 w-full rounded-xl border border-border bg-white px-4 text-char outline-none focus:border-primary focus:ring-4 focus:ring-primary/10";

@@ -1,6 +1,7 @@
 {
   "eyebrow": "Kasse",
   "title": "Bestellung abschließen",
+  "editCart": "Warenkorb bearbeiten",
   "orderType": {
     "title": "Bestellart",
     "takeaway": {
@@ -43,7 +44,10 @@
     "continuePayment": "Zahlung fortsetzen",
     "continueToPayment": "Weiter zur sicheren Zahlung",
     "placeOrder": "Bestellung aufgeben",
-    "priceDisclaimer": "Menüpreise werden erneut vom Server geprüft."
+    "priceDisclaimer": "Menüpreise werden erneut vom Server geprüft.",
+    "securePayment": "Sicherer Bestellvorgang",
+    "without": "Ohne",
+    "extra": "Extra"
   },
   "emptyCart": {
     "title": "Dein Warenkorb ist leer",

@@ -57,7 +57,7 @@ export function MenuCategoryNav({
   return (
     <nav
       aria-label="Menu categories"
-      className="sticky top-16 z-40 border-b border-char/10 bg-[#f7f1e8]/95 shadow-sm backdrop-blur"
+      className="sticky top-16 z-40 border-b border-[#dceaf2] bg-white/95 shadow-[0_4px_18px_rgba(15,23,42,0.04)] backdrop-blur"
     >
       <div
         ref={carouselRef}
@@ -73,8 +73,8 @@ export function MenuCategoryNav({
                 onClick={() => onSelect(category.id)}
                 className={`snap-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
                   isActive
-                    ? "bg-tomato text-white shadow-md"
-                    : "bg-white text-char/65 hover:text-tomato"
+                    ? "bg-primary text-white shadow-[0_6px_18px_rgba(11,116,209,0.22)]"
+                    : "bg-[#eef7fb] text-char/65 hover:text-primary"
                 }`}
               >
                 {category.label}

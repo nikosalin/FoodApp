@@ -12,8 +12,8 @@ export function CartPage() {
   const { t } = useTranslation("cart");
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-16">
-      <h1 className="mb-8 text-3xl font-black tracking-wide text-pita">
+    <div className="mx-auto max-w-2xl px-4 py-12 sm:py-16">
+      <h1 className="mb-8 text-3xl font-black tracking-wide text-char">
         {t("cart.title")}
       </h1>
 
@@ -21,7 +21,7 @@ export function CartPage() {
         <EmptyCart />
       ) : (
         <>
-          <div>
+          <div className="overflow-hidden rounded-3xl border border-border bg-white px-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
             {items.map((item) => (
               <CartItemRow key={item.id} {...item} />
             ))}
@@ -33,7 +33,7 @@ export function CartPage() {
 
           <Link
             href="/checkout"
-            className="mt-6 block w-full rounded-full bg-chili py-3 text-center font-semibold text-pita hover:bg-chili/90"
+            className="mt-6 block w-full rounded-full bg-primary py-3 text-center font-semibold text-white shadow-[0_10px_24px_rgba(11,116,209,0.22)] transition hover:bg-primary/90"
           >
             {t("cart.checkoutButton")}
           </Link>
