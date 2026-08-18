@@ -12,7 +12,12 @@
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status",
     "supabase:reset": "supabase db reset",
-    "supabase:lint": "supabase db lint"
+    "supabase:lint": "supabase db lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:smoke": "playwright test tests/smoke"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -37,16 +42,24 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^5.2.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.11",
     "i18next-resources-for-ts": "^2.1.0",
+    "jsdom": "^29.1.1",
     "supabase": "^2.109.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.1.10"
   }
 }

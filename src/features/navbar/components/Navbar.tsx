@@ -1,5 +1,5 @@
 import { Logo } from "./Logo";
-import { NavLinks } from "./NavLinks";
+// import { NavLinks } from "./NavLinks";
 import { MobileMenu } from "./MobileMenu";
 import { LanguageSwitcher } from "@/components/languageSwitcher";
 import { CartBadge } from "@/features/cart/components/CartBadge";
@@ -11,7 +11,8 @@ export function Navbar() {
         <Logo />
 
         <nav className="hidden items-center gap-8 md:flex">
-          <NavLinks />
+          {/* <NavLinks /> */}
+          <p className="text-white bold text-2xl">Το φαγητό θέλει μεράκι</p>
         </nav>
 
         <div className="flex items-center gap-3">

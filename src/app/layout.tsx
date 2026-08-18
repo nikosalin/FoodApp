@@ -18,8 +18,8 @@ export const metadata: Metadata = {
   title: "Der Schöne Grieche",
   description: "Griechische Spezialitäten online bestellen.",
   icons: {
-    icon: "/souvlaki-rezept-die-frau-am-grill-500x375.jpg",
-    apple: "/souvlaki-rezept-die-frau-am-grill-500x375.jpg",
+    icon: "/home1.png",
+    apple: "/home1.png",
   },
 };
 

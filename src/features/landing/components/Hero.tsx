@@ -12,7 +12,7 @@ export function Hero() {
     <section className="grid min-h-[calc(100vh-4rem)] overflow-hidden bg-[#fffaf2] lg:grid-cols-2">
       <div className="relative min-h-[42vh] overflow-hidden lg:min-h-full">
         <Image
-          src="/souvlaki-rezept-die-frau-am-grill-500x375.jpg"
+          src="/home1.png"
           alt="Fresh grilled souvlaki"
           fill
           priority
@@ -29,37 +29,37 @@ export function Hero() {
         <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-lemon/20" />
         <div className="absolute -bottom-24 -left-20 h-72 w-72 rounded-full border-[44px] border-tomato/10" />
         <div className="relative z-10 flex w-full max-w-2xl flex-col items-center">
-        <span className="line-clamp-1 min-h-[1.25rem] text-sm font-black uppercase tracking-[0.3em] text-tomato">
-          {t("hero.eyebrow")}
-        </span>
+          <span className="line-clamp-1 min-h-[1.25rem] text-sm font-black uppercase tracking-[0.3em] text-tomato">
+            {t("hero.eyebrow")}
+          </span>
 
-        <h1 className="mt-4 line-clamp-2 min-h-[4.5rem] text-5xl font-black uppercase leading-[0.95] tracking-tight text-char md:min-h-[6.5rem] md:text-7xl">
-          {t("hero.title")}
-        </h1>
+          <h1 className="mt-4 line-clamp-2 min-h-[4.5rem] text-5xl font-black uppercase leading-[0.95] tracking-tight text-char md:min-h-[6.5rem] md:text-7xl">
+            {t("hero.title")}
+          </h1>
 
-        <p className="mt-6 line-clamp-2 min-h-[3.5rem] max-w-md text-char/65">
-          {t("hero.tagline")}
-        </p>
+          <p className="mt-6 line-clamp-2 min-h-[3.5rem] max-w-md text-char/65">
+            {t("hero.tagline")}
+          </p>
 
-        <span className="mt-3 line-clamp-1 inline-block min-h-[2rem] rotate-[-2deg] rounded-xl bg-lemon px-4 py-1.5 text-sm font-black text-char shadow-sm">
-          {t("hero.discount")}
-        </span>
+          <span className="mt-3 line-clamp-1 inline-block min-h-[2rem] rotate-[-2deg] rounded-xl bg-lemon px-4 py-1.5 text-sm font-black text-char shadow-sm">
+            {t("hero.discount")}
+          </span>
 
-        <div className="mt-8 flex w-full flex-col items-center gap-4 sm:flex-row sm:justify-center">
-          <Link
-            href="/menu"
-            className="line-clamp-1 w-full max-w-xs rounded-xl bg-tomato px-8 py-3.5 text-center font-black uppercase tracking-wide text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-char sm:w-auto"
-          >
-            {t("hero.orderButton")}
-          </Link>
-          <a
-            href={`tel:${storeInfo.phone.replace(/\./g, "")}`}
-            className="w-full max-w-xs rounded-xl border-2 border-char px-8 py-3 text-center font-black text-char transition hover:bg-char hover:text-white sm:w-auto"
-          >
-            {storeInfo.phone}
-          </a>
+          <div className="mt-8 flex w-full flex-col items-center gap-4 sm:flex-row sm:justify-center">
+            <Link
+              href="/menu"
+              className="line-clamp-1 w-full max-w-xs rounded-xl bg-tomato px-8 py-3.5 text-center font-black uppercase tracking-wide text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-char sm:w-auto"
+            >
+              {t("hero.orderButton")}
+            </Link>
+            <a
+              href={`tel:${storeInfo.phone.replace(/\./g, "")}`}
+              className="w-full max-w-xs rounded-xl border-2 border-char px-8 py-3 text-center font-black text-char transition hover:bg-char hover:text-white sm:w-auto"
+            >
+              {storeInfo.phone}
+            </a>
+          </div>
         </div>
-      </div>
       </div>
     </section>
   );
